@@ -1,0 +1,36 @@
+---
+---
+<footer>
+  <div class="container">
+    <div class="links">
+      <a href="https://github.com/kaangumele" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://linkedin.com/in/kaangumele" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="mailto:kaan@kaangumele.com">kaan@kaangumele.com</a>
+    </div>
+    <p class="copy">© 2026 Kaan Gümele</p>
+  </div>
+</footer>
+
+<style>
+footer {
+  margin-top: 80px;
+  padding: 32px 0 40px;
+  border-top: 1px solid var(--border);
+}
+footer .container { text-align: center; }
+.links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.links a {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+.links a:hover { color: var(--primary); text-decoration: none; opacity: 1; }
+.copy { font-size: 0.75rem; color: var(--muted); margin: 0; }
+</style>

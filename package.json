@@ -1,0 +1,16 @@
+{
+  "name": "kaangumele",
+  "version": "1.0.0",
+  "description": "Kaan Gümele — Kişisel Site",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "author": "Kaan Gümele",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "astro": "^7.0.2"
+  }
+}

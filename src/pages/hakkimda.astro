@@ -1,0 +1,161 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Hakkımda — Kaan Gümele"
+  description="Kaan Gümele — Applied AI Engineer. Deneyim, eğitim, uzmanlık ve iletişim."
+>
+  <div class="container">
+    <p class="label">hakkımda</p>
+    <h1>Kaan Gümele</h1>
+    <p class="role">Applied AI Engineer · İstanbul</p>
+
+    <section class="bio">
+      <p>
+        Sıfırdan production sistemleri inşa ediyorum.
+        Veri toplamak, model geliştirmek ve bunu gerçek bir ürüne dönüştürmek —
+        bu üçünü aynı anda yapabilmek benim için bir tercih değil, zorunluluktu;
+        ve zamanla bir kimliğe dönüştü.
+      </p>
+      <p>
+        <a href="https://mapindata.com" target="_blank" rel="noopener">Mapindata</a>'da
+        LLM ajanları, computer vision ve veri mühendisliği üzerinde çalışıyorum.
+        <a href="https://belogic.com.tr" target="_blank" rel="noopener">Belogic</a>'te
+        part-time AI danışmanlığı yapıyorum. Cerrahpaşa'da Bilgisayar Mühendisliği yüksek lisansı.
+      </p>
+    </section>
+
+    <hr />
+
+    <section>
+      <p class="label">deneyim</p>
+      <div class="timeline">
+        <div class="entry">
+          <div class="entry-head">
+            <span class="company">Mapindata</span>
+            <span class="period">2025 – Günümüz</span>
+          </div>
+          <div class="entry-role">Applied AI Engineer — Full-time</div>
+          <p class="entry-desc">LLM ajanları, computer vision sistemleri, veri mühendisliği, AWS altyapısı ve deployment.</p>
+        </div>
+        <div class="entry">
+          <div class="entry-head">
+            <span class="company">Belogic</span>
+            <span class="period">2025 – Günümüz</span>
+          </div>
+          <div class="entry-role">AI Engineer — Part-time</div>
+          <p class="entry-desc">AI danışmanlığı ve sistem entegrasyonu.</p>
+        </div>
+        <div class="entry">
+          <div class="entry-head">
+            <span class="company">MigrosOne / VBT</span>
+            <span class="period">2023 – 2025</span>
+          </div>
+          <div class="entry-role">Data Scientist / ML Engineer</div>
+          <p class="entry-desc">Veri bilimi, makine öğrenmesi modelleri ve öneri sistemleri.</p>
+        </div>
+      </div>
+    </section>
+
+    <hr />
+
+    <section>
+      <p class="label">uzmanlık</p>
+      <div class="skills">
+        <div class="skill-row">
+          <h3>AI & ML</h3>
+          <p>LLM Ajanları · RAG · Computer Vision · Fine-tuning · Prompt Engineering · MobileNet</p>
+        </div>
+        <div class="skill-row">
+          <h3>Cloud & DevOps</h3>
+          <p>AWS (ECR · ECS Fargate · S3 · CloudWatch · Bedrock) · Docker · Docker Compose · CI/CD</p>
+        </div>
+        <div class="skill-row">
+          <h3>Veri</h3>
+          <p>Data Engineering · Web Scraping · PostgreSQL · PostGIS · Python · FastAPI</p>
+        </div>
+      </div>
+    </section>
+
+    <hr />
+
+    <section>
+      <p class="label">eğitim</p>
+      <div class="timeline">
+        <div class="entry">
+          <div class="entry-head">
+            <span class="company">Cerrahpaşa Üniversitesi</span>
+            <span class="period">2025 – Devam</span>
+          </div>
+          <div class="entry-role">Bilgisayar Mühendisliği — Yüksek Lisans</div>
+        </div>
+        <div class="entry">
+          <div class="entry-head">
+            <span class="company">İstanbul Medeniyet Üniversitesi</span>
+            <span class="period">2021 – 2025</span>
+          </div>
+          <div class="entry-role">Bilgisayar Mühendisliği — Lisans</div>
+        </div>
+      </div>
+    </section>
+
+    <hr />
+
+    <section>
+      <p class="label">iletişim</p>
+      <p>Bir proje için konuşmak, iş birliği yapmak ya da sadece merhaba demek için:</p>
+      <div class="contact-links">
+        <a href="mailto:kaan@kaangumele.com">kaan@kaangumele.com</a>
+        <a href="https://github.com/kaangumele" target="_blank" rel="noopener">github.com/kaangumele</a>
+        <a href="https://linkedin.com/in/kaangumele" target="_blank" rel="noopener">linkedin.com/in/kaangumele</a>
+      </div>
+    </section>
+
+  </div>
+</BaseLayout>
+
+<style>
+.container { padding-top: 64px; padding-bottom: 80px; }
+h1 { margin: 8px 0 4px; }
+.role { font-family: var(--mono); font-size: 0.8125rem; color: var(--muted); margin-bottom: 32px; }
+.bio p { font-size: 1.0625rem; line-height: 1.8; }
+
+/* Timeline */
+.timeline { display: flex; flex-direction: column; }
+.entry { padding: 18px 0; border-bottom: 1px solid var(--border); }
+.entry:first-child { border-top: 1px solid var(--border); }
+.entry-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.company { font-family: var(--mono); font-size: 0.875rem; font-weight: 600; color: var(--bright); }
+.period { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+.entry-role { font-size: 0.875rem; color: var(--primary); margin-bottom: 4px; }
+.entry-desc { font-size: 0.875rem; color: var(--text); margin: 0; line-height: 1.55; }
+
+/* Skills */
+.skills { display: flex; flex-direction: column; }
+.skill-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 8px 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: baseline;
+}
+.skill-row:first-child { border-top: 1px solid var(--border); }
+.skill-row h3 { font-size: 0.8125rem; }
+.skill-row p { font-size: 0.875rem; color: var(--text); line-height: 1.6; margin: 0; }
+
+/* Contact */
+.contact-links { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.contact-links a { font-family: var(--mono); font-size: 0.875rem; }
+
+@media (max-width: 520px) {
+  .skill-row { grid-template-columns: 1fr; gap: 4px; }
+  .entry-head { flex-direction: column; gap: 2px; }
+}
+</style>

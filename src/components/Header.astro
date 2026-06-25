@@ -1,0 +1,67 @@
+---
+const { pathname } = Astro.url;
+const links = [
+  { href: '/',         label: 'Ana Sayfa' },
+  { href: '/blog',     label: 'Yazılar'   },
+  { href: '/hakkimda', label: 'Hakkımda'  },
+];
+---
+<header>
+  <div class="container">
+    <nav>
+      <a href="/" class="site-name">kaan gümele</a>
+      <ul>
+        {links.map(link => (
+          <li>
+            <a
+              href={link.href}
+              class={pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href)) ? 'active' : ''}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+header {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(11,17,23,0.9);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.site-name {
+  font-family: var(--mono);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--bright);
+  letter-spacing: -0.02em;
+}
+.site-name::before { content: '$ '; color: var(--primary); }
+.site-name:hover { opacity: 0.8; text-decoration: none; }
+ul { display: flex; list-style: none; gap: 28px; }
+ul a {
+  font-size: 0.875rem;
+  color: var(--text);
+  transition: color 0.15s;
+}
+ul a:hover, ul a.active { color: var(--bright); text-decoration: none; }
+ul a.active { color: var(--primary); }
+
+@media (max-width: 480px) {
+  ul { gap: 16px; }
+  ul a { font-size: 0.8125rem; }
+}
+</style>

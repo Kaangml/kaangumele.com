@@ -1,0 +1,156 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const projects = [
+  {
+    name: 'menu-classifier',
+    url: 'https://github.com/kaangumele/menu-classifier',
+    desc: 'Restoran menülerini tespit eden binary classifier. FastAPI + MobileNet V2, AWS ECR → ECS Fargate üzerinde production\'da.',
+  },
+  {
+    name: 'autonomous-browser-ai',
+    url: 'https://github.com/kaangumele/autonomous-browser-ai-agent',
+    desc: 'LLM destekli otonom web tarama ajanı. Hedefleri kendi başına belirler, adımları çalıştırır. AWS Bedrock.',
+  },
+  {
+    name: 'aws-live-dashboard',
+    url: 'https://github.com/kaangumele/aws-live-dashboard',
+    desc: 'AWS kaynak ve maliyet metriklerini gerçek zamanlı izleyen dashboard. CloudWatch entegrasyonu.',
+  },
+  {
+    name: 'city2graph',
+    url: 'https://github.com/kaangumele/city2graph',
+    desc: 'Şehir coğrafi verilerini graf yapısına dönüştürür. Overture Maps + PostGIS + NetworkX.',
+  },
+];
+
+const postModules = import.meta.glob('./blog/*.md', { eager: true });
+const recentPosts = Object.entries(postModules)
+  .map(([path, mod]) => ({
+    slug: path.replace('./blog/', '').replace('.md', ''),
+    title: mod.frontmatter.title,
+    date: mod.frontmatter.date,
+  }))
+  .sort((a, b) => new Date(b.date) - new Date(a.date))
+  .slice(0, 3);
+---
+<BaseLayout>
+  <div class="container">
+
+    <section class="hero">
+      <h1><span class="prefix">//</span> kaan gümele</h1>
+      <p class="role">Applied AI Engineer · İstanbul</p>
+      <p class="bio">
+        Veri toplarım, model kurarım, production'a taşırım.
+        <a href="https://mapindata.com" target="_blank" rel="noopener">Mapindata</a>'da
+        LLM ajanları ve computer vision sistemleri geliştiriyorum.
+        Sıfırdan çalışan sistemler inşa ediyorum.
+      </p>
+    </section>
+
+    <hr />
+
+    <section>
+      <p class="label">projeler</p>
+      <dl class="project-list">
+        {projects.map(p => (
+          <div class="project-item">
+            <dt><a href={p.url} target="_blank" rel="noopener">{p.name}</a></dt>
+            <dd>{p.desc}</dd>
+          </div>
+        ))}
+      </dl>
+      <a href="https://github.com/kaangumele" class="more-link" target="_blank" rel="noopener">
+        github.com/kaangumele →
+      </a>
+    </section>
+
+    {recentPosts.length > 0 && (
+      <>
+        <hr />
+        <section>
+          <p class="label">son yazılar</p>
+          <ul class="post-list">
+            {recentPosts.map(post => (
+              <li>
+                <a href={`/blog/${post.slug}`}>{post.title}</a>
+                <time>{new Date(post.date).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long' })}</time>
+              </li>
+            ))}
+          </ul>
+          <a href="/blog" class="more-link">tüm yazılar →</a>
+        </section>
+      </>
+    )}
+
+  </div>
+</BaseLayout>
+
+<style>
+.container { padding-top: 72px; padding-bottom: 80px; }
+
+.hero { }
+.hero h1 {
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+.prefix { color: var(--primary); margin-right: 2px; }
+.role {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--muted);
+  margin-bottom: 24px;
+  letter-spacing: 0.02em;
+}
+.bio {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: var(--text);
+  max-width: 560px;
+  margin: 0;
+}
+
+.project-list { display: flex; flex-direction: column; }
+.project-item {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 8px 24px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: baseline;
+}
+.project-item:first-child { border-top: 1px solid var(--border); }
+.project-item dt { font-family: var(--mono); font-size: 0.875rem; font-weight: 600; }
+.project-item dt a { color: var(--bright); }
+.project-item dt a:hover { color: var(--primary); text-decoration: none; opacity: 1; }
+.project-item dd { font-size: 0.9375rem; color: var(--text); margin: 0; line-height: 1.6; }
+
+.post-list { list-style: none; }
+.post-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.post-list li:first-child { border-top: 1px solid var(--border); }
+.post-list a { font-size: 0.9375rem; color: var(--bright); }
+.post-list a:hover { color: var(--primary); text-decoration: none; opacity: 1; }
+.post-list time { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+
+.more-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.more-link:hover { color: var(--primary); text-decoration: none; opacity: 1; }
+
+@media (max-width: 520px) {
+  .project-item { grid-template-columns: 1fr; gap: 4px; }
+}
+</style>
