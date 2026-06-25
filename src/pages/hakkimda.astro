@@ -3,26 +3,32 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   title="Hakkımda — Kaan Gümele"
-  description="Kaan Gümele — Applied AI Engineer. Deneyim, eğitim, uzmanlık ve iletişim."
+  description="Kaan Gümele — Applied AI Engineer & Data Scientist. Deneyim, projeler, yayınlar ve iletişim."
 >
   <div class="container">
     <p class="label">hakkımda</p>
     <h1>Kaan Gümele</h1>
-    <p class="role">Applied AI Engineer · İstanbul</p>
+    <p class="role">Applied AI Engineer & Data Scientist · İstanbul</p>
 
     <section class="bio">
       <p>
         Sıfırdan production sistemleri inşa ediyorum.
-        Veri toplamak, model geliştirmek ve bunu gerçek bir ürüne dönüştürmek —
-        bu üçünü aynı anda yapabilmek benim için bir tercih değil, zorunluluktu;
-        ve zamanla bir kimliğe dönüştü.
+        Otonom tarama ajanları, multi-hop RAG pipeline'ları ve production-grade
+        derin öğrenme modelleri dahil olmak üzere uçtan uca ML/AI sistemleri geliştiriyorum.
+        Tıbbi AI alanında yayınlanmış araştırmacı; otomasyon, perakende ve
+        jeo-uzamsal alanlarda gerçek dünya çözümleri tasarlıyor, deploy ediyor ve ölçeklendiriyorum.
       </p>
       <p>
-        <a href="https://mapindata.com" target="_blank" rel="noopener">Mapindata</a>'da
-        LLM ajanları, computer vision ve veri mühendisliği üzerinde çalışıyorum.
+        <a href="https://mapindata.com" target="_blank" rel="noopener">Mapin Data</a>'da
+        AI ajanları, big data ve vision sistemleri geliştiriyorum.
         <a href="https://belogic.co/" target="_blank" rel="noopener">Belogic</a>'te
-        part-time AI danışmanlığı yapıyorum. Cerrahpaşa'da Bilgisayar Mühendisliği yüksek lisansı.
+        part-time AI danışmanlığı yapıyorum.
+        <a href="https://medium.com/@gumelekaan" target="_blank" rel="noopener">Medium</a>'da
+        teknik yazılar yayınlıyorum.
       </p>
+      <div class="cv-download">
+        <a href="/kaan-gumele-cv.pdf" download class="cv-btn">CV İndir (PDF)</a>
+      </div>
     </section>
 
     <hr />
@@ -32,27 +38,62 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="timeline">
         <div class="entry">
           <div class="entry-head">
-            <span class="company">Mapindata</span>
-            <span class="period">2025 – Günümüz</span>
+            <span class="company">Mapin Data</span>
+            <span class="period">06/2025 – Günümüz</span>
           </div>
           <div class="entry-role">Applied AI Engineer — Full-time</div>
-          <p class="entry-desc">LLM ajanları, computer vision sistemleri, veri mühendisliği, AWS altyapısı ve deployment.</p>
+          <ul class="entry-list">
+            <li>Google Maps için otonom tarama ajanı — manuel QA'yı ~%80 azalttı</li>
+            <li>n8n + Python + AWS (S3, Lambda, Athena/Redshift) ETL pipeline tasarımı</li>
+            <li>PySpark ile 4.5 milyar+ mobil event analizi, müşteri persona çıkarımı</li>
+            <li>Restoran görselleri için CNN & Transformer fine-tuning; Docker ile deploy</li>
+            <li>Anadolu Efes menü analitik sistemi (şema, ingestion, sınıflandırma)</li>
+          </ul>
         </div>
         <div class="entry">
           <div class="entry-head">
             <span class="company">Belogic</span>
-            <span class="period">2025 – Günümüz</span>
+            <span class="period">01/2026 – Günümüz</span>
           </div>
           <div class="entry-role">AI Engineer — Part-time</div>
-          <p class="entry-desc">AI danışmanlığı ve sistem entegrasyonu.</p>
+          <ul class="entry-list">
+            <li>AI danışmanlığı ve sistem entegrasyonu</li>
+          </ul>
         </div>
         <div class="entry">
           <div class="entry-head">
-            <span class="company">MigrosOne / VBT</span>
-            <span class="period">2023 – 2025</span>
+            <span class="company">T3 Vakfı</span>
+            <span class="period">01/2025 – 11/2025</span>
           </div>
-          <div class="entry-role">Data Scientist / ML Engineer</div>
-          <p class="entry-desc">Veri bilimi, makine öğrenmesi modelleri ve öneri sistemleri.</p>
+          <div class="entry-role">Rising Star</div>
+          <ul class="entry-list">
+            <li>Otonom sertifika üretim/doğrulama workflow'u tasarlandı</li>
+            <li>Teknofest finalistlerine ML proje tasarımı mentörlüğü</li>
+            <li>LLM'ler, ajanlar ve AI mühendisliği üzerine workshop'lar</li>
+          </ul>
+        </div>
+        <div class="entry">
+          <div class="entry-head">
+            <span class="company">Migros One</span>
+            <span class="period">08/2024 – 09/2024</span>
+          </div>
+          <div class="entry-role">Data Analyst</div>
+          <ul class="entry-list">
+            <li>Satış + yorum verisiyle ürün puanlama pipeline'ı otomasyonu</li>
+            <li>Yorum işleme workflow'u (scraping, temizleme, duygu analizi)</li>
+            <li>BigQuery analitik dashboard'ları</li>
+          </ul>
+        </div>
+        <div class="entry">
+          <div class="entry-head">
+            <span class="company">VBT Software</span>
+            <span class="period">06/2024 – 08/2024</span>
+          </div>
+          <div class="entry-role">Stajyer Yazılım Mühendisi</div>
+          <ul class="entry-list">
+            <li>Web, mobil, mainframe ve veritabanı sistemleri deneyimi</li>
+            <li>QA ve veri işleme için dahili otomasyon araçları</li>
+          </ul>
         </div>
       </div>
     </section>
@@ -63,16 +104,52 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <p class="label">uzmanlık</p>
       <div class="skills">
         <div class="skill-row">
-          <h3>AI & ML</h3>
-          <p>LLM Ajanları · RAG · Computer Vision · Fine-tuning · Prompt Engineering · MobileNet</p>
+          <h3>GenAI & Ajan</h3>
+          <p>LangChain · LangGraph · CrewAI/AutoGen · Function Calling · Agentic Design Patterns · LLM Evaluation (Ragas)</p>
+        </div>
+        <div class="skill-row">
+          <h3>RAG & Vektör</h3>
+          <p>Chroma · FAISS · Neo4j · Hybrid Search · GraphRAG · Advanced Chunking</p>
+        </div>
+        <div class="skill-row">
+          <h3>Big Data</h3>
+          <p>PySpark · DuckDB · AWS Athena/Redshift · SQL · ETL (n8n)</p>
+        </div>
+        <div class="skill-row">
+          <h3>ML & Vision</h3>
+          <p>PyTorch · TensorFlow · CNN · ViT · U-Net · LoRA/QLoRA · Model Quantization (GGUF, AWQ)</p>
         </div>
         <div class="skill-row">
           <h3>Cloud & DevOps</h3>
-          <p>AWS (ECR · ECS Fargate · S3 · CloudWatch · Bedrock) · Docker · Docker Compose · CI/CD</p>
+          <p>AWS (Bedrock · SageMaker · ECR · ECS · S3 · Lambda · CloudWatch) · Docker · CI/CD</p>
         </div>
         <div class="skill-row">
-          <h3>Veri</h3>
-          <p>Data Engineering · Web Scraping · PostgreSQL · PostGIS · Python · FastAPI</p>
+          <h3>Backend</h3>
+          <p>FastAPI · Streamlit/Gradio · Python · Asenkron programlama</p>
+        </div>
+      </div>
+    </section>
+
+    <hr />
+
+    <section>
+      <p class="label">araştırma & yayınlar</p>
+      <div class="timeline">
+        <div class="entry">
+          <div class="entry-role" style="margin-bottom:2px">Oral Cancer Classification with CNN-based SOTA transfer learning</div>
+          <p class="entry-desc">IEEE makale</p>
+        </div>
+        <div class="entry">
+          <div class="entry-role" style="margin-bottom:2px">Deep Learning Based Meningioma Grading — ResNet50</div>
+          <p class="entry-desc">EANS 2025</p>
+        </div>
+        <div class="entry">
+          <div class="entry-role" style="margin-bottom:2px">Thoracolumbar Fracture Detection using U-Net</div>
+          <p class="entry-desc">EANS 2025</p>
+        </div>
+        <div class="entry">
+          <div class="entry-role" style="margin-bottom:2px">Meningioma Tumor Grade Prediction</div>
+          <p class="entry-desc">ISMSIT 2025 · TÜBİTAK 2209-A</p>
         </div>
       </div>
     </section>
@@ -84,7 +161,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="timeline">
         <div class="entry">
           <div class="entry-head">
-            <span class="company">Cerrahpaşa Üniversitesi</span>
+            <span class="company">İstanbul Cerrahpaşa Üniversitesi</span>
             <span class="period">2025 – Devam</span>
           </div>
           <div class="entry-role">Bilgisayar Mühendisliği — Yüksek Lisans</div>
@@ -108,6 +185,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <a href="mailto:kaan@kaangumele.com">kaan@kaangumele.com</a>
         <a href="https://github.com/Kaangml" target="_blank" rel="noopener">github.com/Kaangml</a>
         <a href="https://www.linkedin.com/in/kaangumele/" target="_blank" rel="noopener">linkedin.com/in/kaangumele</a>
+        <a href="https://medium.com/@gumelekaan" target="_blank" rel="noopener">medium.com/@gumelekaan</a>
       </div>
     </section>
 
@@ -117,8 +195,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <style>
 .container { padding-top: 64px; padding-bottom: 80px; }
 h1 { margin: 8px 0 4px; }
-.role { font-family: var(--mono); font-size: 0.8125rem; color: var(--muted); margin-bottom: 32px; }
-.bio p { font-size: 1.0625rem; line-height: 1.8; }
+.role { font-family: var(--mono); font-size: 0.8125rem; color: var(--muted); margin-bottom: 24px; }
+.bio p { font-size: 1.0625rem; line-height: 1.8; margin-bottom: 1em; }
+
+.cv-download { margin-top: 20px; }
+.cv-btn {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 7px 16px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.cv-btn:hover { background: var(--primary-bg); text-decoration: none; opacity: 1; }
 
 /* Timeline */
 .timeline { display: flex; flex-direction: column; }
@@ -133,8 +224,16 @@ h1 { margin: 8px 0 4px; }
 }
 .company { font-family: var(--mono); font-size: 0.875rem; font-weight: 600; color: var(--bright); }
 .period { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
-.entry-role { font-size: 0.875rem; color: var(--primary); margin-bottom: 4px; }
-.entry-desc { font-size: 0.875rem; color: var(--text); margin: 0; line-height: 1.55; }
+.entry-role { font-size: 0.875rem; color: var(--primary); margin-bottom: 6px; }
+.entry-desc { font-size: 0.875rem; color: var(--muted); margin: 0; }
+.entry-list {
+  padding-left: 1.25em;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.entry-list li { font-size: 0.875rem; color: var(--text); line-height: 1.55; }
 
 /* Skills */
 .skills { display: flex; flex-direction: column; }
@@ -142,7 +241,7 @@ h1 { margin: 8px 0 4px; }
   display: grid;
   grid-template-columns: 150px 1fr;
   gap: 8px 24px;
-  padding: 16px 0;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border);
   align-items: baseline;
 }

@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const sunumlar = [
+  {
+    slug: 'ders1_docker_giris',
+    baslik: 'Ders 1 — Docker ile Container Dünyasına Giriş',
+    aciklama: 'VM vs Container, Image/Dockerfile/Compose kavramları, Docker ekosistemi.',
+    etiket: 'Docker',
+  },
+  {
+    slug: 'ders2_deployment',
+    baslik: 'Ders 2 — Uygulamayı Konteynere Taşımak',
+    aciklama: 'FastAPI + Docker build/run, docker compose, ölçekleme ve deployment akışı.',
+    etiket: 'Docker · Deployment',
+  },
+  {
+    slug: 'ders3_aws',
+    baslik: 'Ders 3 — AWS ile Buluta Çıkış',
+    aciklama: 'ECR, ECS Fargate, ALB — container\'ı production\'a taşımanın tam akışı.',
+    etiket: 'AWS · ECR · ECS',
+  },
+];
+---
+<BaseLayout
+  title="Sunumlar — Kaan Gümele"
+  description="Docker, Deployment ve AWS eğitim sunumları."
+>
+  <div class="container">
+    <p class="label">sunumlar</p>
+    <h1>Eğitim Sunumları</h1>
+    <p class="intro">Docker · Deployment · AWS eğitim serisine ait interaktif slaytlar.</p>
+
+    <ul class="sunum-list">
+      {sunumlar.map(s => (
+        <li>
+          <a href={`/sunumlar/${s.slug}.html`} target="_blank" rel="noopener">
+            <span class="sunum-baslik">{s.baslik}</span>
+            <span class="sunum-meta">{s.etiket}</span>
+            <span class="sunum-aciklama">{s.aciklama}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+.container { padding-top: 64px; padding-bottom: 80px; }
+h1 { margin: 8px 0 16px; }
+.intro { color: var(--text); font-size: 0.9375rem; margin-bottom: 40px; margin-top: 0; }
+
+.sunum-list { list-style: none; }
+.sunum-list li { border-bottom: 1px solid var(--border); }
+.sunum-list li:first-child { border-top: 1px solid var(--border); }
+.sunum-list a { display: block; padding: 18px 0; color: inherit; text-decoration: none; }
+.sunum-list a:hover .sunum-baslik { color: var(--primary); }
+
+.sunum-baslik {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--bright);
+  margin-bottom: 4px;
+  transition: color 0.15s;
+}
+.sunum-meta {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+.sunum-aciklama {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text);
+  line-height: 1.55;
+}
+</style>

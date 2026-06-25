@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 3 — AWS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0B1117;
+  --surface:   #111927;
+  --surface-2: #162030;
+  --border:    #1D2B3A;
+  --border-hi: #253B50;
+  --text:      #CDD9E5;
+  --muted:     #5E7A8E;
+  --bright:    #E8F1F8;
+  --primary:     #8B5CF6;
+  --primary-dim: rgba(139,92,246,0.10);
+  --purple:    #8B5CF6;
+  --purple-dim:rgba(139,92,246,0.10);
+  --blue:      #2496ED;
+  --blue-dim:  rgba(36,150,237,0.10);
+  --green:     #00C04B;
+  --green-dim: rgba(0,192,75,0.10);
+  --amber:     #F59E0B;
+  --amber-dim: rgba(245,158,11,0.10);
+  --red:       #F04D4D;
+  --red-dim:   rgba(240,77,77,0.10);
+  --orange:    #F0883E;
+  --orange-dim:rgba(240,136,62,0.10);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Inter',system-ui,sans-serif;
+  background-color:var(--bg);
+  background-image:radial-gradient(circle,var(--border) 1.5px,transparent 1.5px);
+  background-size:28px 28px;
+  color:var(--text); height:100vh; overflow:hidden; user-select:none;
+}
+.deck { position:relative; height:100vh; overflow:hidden; }
+.slide {
+  position:absolute; inset:0; padding:56px 88px;
+  display:flex; flex-direction:column; justify-content:center;
+  opacity:0; pointer-events:none;
+  transform:translateX(52px);
+  transition:opacity 0.38s ease,transform 0.38s cubic-bezier(0.22,1,0.36,1);
+  z-index:0;
+}
+.slide.active  { opacity:1; pointer-events:auto; transform:translateX(0); z-index:1; }
+.slide.leaving { opacity:0; transform:translateX(-36px); pointer-events:none; transition-duration:0.22s; z-index:0; }
+
+h1 { font-family:'JetBrains Mono',monospace; font-size:2.9em; font-weight:700; color:var(--primary); line-height:1.15; letter-spacing:-0.02em; margin-bottom:18px; }
+h2 { font-family:'JetBrains Mono',monospace; font-size:1.95em; font-weight:700; color:var(--primary); line-height:1.2; letter-spacing:-0.02em; margin-bottom:26px; }
+h2::before { content:'// '; color:var(--muted); font-weight:400; font-size:0.75em; }
+h3 { font-family:'JetBrains Mono',monospace; font-size:1.05em; font-weight:600; color:var(--bright); margin-bottom:12px; }
+p  { font-size:1.15em; line-height:1.75; margin-bottom:12px; }
+ul { list-style:none; font-size:1.1em; }
+ul li { padding:7px 0 7px 22px; position:relative; line-height:1.4; }
+ul li::before { content:"▸"; position:absolute; left:0; color:var(--primary); font-family:'JetBrains Mono',monospace; }
+ul.check li::before { content:"✓"; color:var(--green); }
+
+code { font-family:'JetBrains Mono',monospace; background:var(--surface); border:1px solid var(--border-hi); border-radius:4px; padding:2px 7px; font-size:0.88em; color:var(--primary); }
+pre  { font-family:'JetBrains Mono',monospace; background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--primary); border-radius:0 8px 8px 0; padding:18px 22px; font-size:0.92em; line-height:1.65; overflow-x:auto; color:var(--bright); }
+.kw { color:#FF7B72; } .str { color:#79C0FF; } .cm { color:var(--muted); font-style:italic; } .fn { color:#D2A8FF; } .num { color:#F2CC60; }
+
+.two-col   { display:grid; grid-template-columns:1fr 1fr; gap:32px; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:22px; }
+
+.box { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px 24px; }
+.box.blue   { border-color:var(--blue);   background:var(--blue-dim); }
+.box.green  { border-color:var(--green);  background:var(--green-dim); }
+.box.yellow { border-color:var(--amber);  background:var(--amber-dim); }
+.box.red    { border-color:var(--red);    background:var(--red-dim); }
+.box.purple { border-color:var(--purple); background:var(--purple-dim); }
+.box.orange { border-color:var(--orange); background:var(--orange-dim); }
+
+table { width:100%; border-collapse:collapse; font-size:1.05em; }
+th { background:var(--surface-2); color:var(--primary); font-family:'JetBrains Mono',monospace; font-size:0.82em; text-transform:uppercase; letter-spacing:0.08em; padding:12px 16px; text-align:left; border-bottom:2px solid var(--primary); }
+td { border:1px solid var(--border); padding:10px 16px; }
+tr:nth-child(even) td { background:var(--surface); }
+
+.highlight { background:var(--primary-dim); border-left:3px solid var(--primary); padding:14px 20px; border-radius:0 8px 8px 0; margin:14px 0; font-size:1.1em; line-height:1.65; }
+.highlight.green  { background:var(--green-dim);  border-left-color:var(--green); }
+.highlight.orange { background:var(--orange-dim); border-left-color:var(--orange); }
+.highlight.blue   { background:var(--blue-dim);   border-left-color:var(--blue); }
+
+.arch-stack { display:flex; flex-direction:column; gap:7px; }
+.arch-box { background:var(--surface); border:1px solid var(--border-hi); border-radius:8px; padding:12px 16px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:0.88em; }
+.arch-box.blue   { border-color:var(--blue);   background:var(--blue-dim); }
+.arch-box.green  { border-color:var(--green);  background:var(--green-dim); }
+.arch-box.purple { border-color:var(--purple); background:var(--purple-dim); }
+.arch-box.orange { border-color:var(--orange); background:var(--orange-dim); }
+.arch-box.yellow { border-color:var(--amber);  background:var(--amber-dim); }
+
+.arrow-flow { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:14px 0; }
+.arrow-flow .step { background:var(--primary); color:#fff; font-family:'JetBrains Mono',monospace; font-size:0.85em; font-weight:700; padding:8px 16px; border-radius:6px; }
+.arrow-flow .step.orange { background:var(--orange); color:#0B1117; }
+.arrow-flow .arrow { color:var(--muted); font-size:1.2em; }
+
+.step-row { display:flex; align-items:flex-start; margin:10px 0; gap:14px; font-size:1.05em; }
+.step-num { flex-shrink:0; width:28px; height:28px; border:2px solid var(--primary); color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:0.85em; font-weight:700; }
+.step-num.green  { border-color:var(--green);  color:var(--green); }
+.step-num.orange { border-color:var(--orange); color:var(--orange); }
+
+.badge { display:inline-block; background:var(--primary); color:#fff; font-family:'JetBrains Mono',monospace; font-size:0.75em; font-weight:700; padding:5px 14px; border-radius:4px; letter-spacing:0.08em; text-transform:uppercase; }
+.subtitle { font-family:'JetBrains Mono',monospace; font-size:0.82em; letter-spacing:0.08em; color:var(--muted); margin-bottom:6px; }
+.center { text-align:center; }
+.green { color:var(--green); } .yellow { color:var(--amber); }
+.red   { color:var(--red); }   .muted  { color:var(--muted); }
+.orange { color:var(--orange); }
+
+[data-theme="light"] {
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-2: #F1F5F9;
+  --border: #E2E8F0;
+  --border-hi: #CBD5E1;
+  --text: #1E293B;
+  --muted: #64748B;
+  --bright: #0F172A;
+}
+
+.cursor { display:inline-block; width:3px; height:0.82em; background:var(--primary); margin-left:3px; vertical-align:middle; animation:blink 1.1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.progress { position:fixed; top:0; left:0; height:3px; background:var(--primary); box-shadow:0 0 10px var(--primary); transition:width 0.4s ease; z-index:200; }
+.lesson-label { position:fixed; top:22px; left:36px; font-family:'JetBrains Mono',monospace; font-size:0.7em; font-weight:700; color:var(--primary); letter-spacing:0.14em; text-transform:uppercase; z-index:200; }
+.nav { position:fixed; bottom:28px; right:36px; display:flex; gap:8px; align-items:center; z-index:200; }
+.nav button { background:var(--surface); border:1px solid var(--border-hi); color:var(--text); padding:8px 18px; border-radius:6px; cursor:pointer; font-family:'JetBrains Mono',monospace; font-size:0.82em; transition:border-color 0.15s,color 0.15s; }
+.nav button:hover { border-color:var(--primary); color:var(--primary); }
+#counter { color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.8em; min-width:52px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="lesson-label">ders_03 / aws_deployment</div>
+
+<div class="deck">
+
+<!-- 01: Title -->
+<div class="slide">
+  <div class="subtitle">// Konteyner Teknolojileri Eğitimi</div>
+  <h1>Buluta Çıkış:<br>AWS ile Canlıya Alma<span class="cursor"></span></h1>
+  <p style="color:var(--muted); font-size:1.15em">ECR · ECS · Fargate · ALB · Canlı Test</p>
+  <div style="margin-top:40px"><span class="badge">03 / AWS Deployment</span></div>
+  <div class="arrow-flow" style="margin-top:28px">
+    <div class="step">docker build</div><div class="arrow">→</div>
+    <div class="step">ECR push</div><div class="arrow">→</div>
+    <div class="step">ECS Task</div><div class="arrow">→</div>
+    <div class="step">ALB</div><div class="arrow">→</div>
+    <div class="step orange">Canlı!</div>
+  </div>
+</div>
+
+<!-- 02: AWS Ekosistemi -->
+<div class="slide">
+  <h2>AWS Konteyner Ekosistemi</h2>
+  <table style="margin-top:8px">
+    <thead><tr><th>AWS Servisi</th><th>Ne Yapar?</th><th>Docker Karşılığı</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>ECR</strong><br><span style="font-size:0.85em; color:var(--muted)">Elastic Container Registry</span></td>
+        <td>Private image deposu</td><td>Docker Hub (özel)</td>
+      </tr>
+      <tr>
+        <td><strong>ECS</strong><br><span style="font-size:0.85em; color:var(--muted)">Elastic Container Service</span></td>
+        <td>Container çalıştırma ve yönetimi</td><td><code>docker run</code> otomatik</td>
+      </tr>
+      <tr>
+        <td><strong>Fargate</strong></td>
+        <td>Sunucu yönetmeden container çalıştır</td><td>EC2 olmadan Docker</td>
+      </tr>
+      <tr>
+        <td><strong>ALB</strong><br><span style="font-size:0.85em; color:var(--muted)">Application Load Balancer</span></td>
+        <td>İstekleri container'lara dağıt</td><td>Nginx (yönetilen)</td>
+      </tr>
+      <tr>
+        <td><strong>EKS</strong><br><span style="font-size:0.85em; color:var(--muted)">Elastic Kubernetes Service</span></td>
+        <td>Yönetilen Kubernetes</td><td>K8s cluster</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="highlight" style="margin-top:18px; font-size:1.0em">
+    <strong>Bugün kullanacağımız yol:</strong> ECR → ECS + Fargate → ALB → Public URL<br>
+    Fargate seçiyoruz: EC2 yönetmek zorunda kalmıyoruz. AWS her şeyi halleder.
+  </div>
+</div>
+
+<!-- 03: ECR -->
+<div class="slide">
+  <h2>ECR — Elastic Container Registry</h2>
+  <div class="two-col" style="align-items:start">
+    <div>
+      <div class="highlight">
+        AWS'nin özel image deposudur. Kodunuz güvende kalır, public Docker Hub'a gitmez.
+      </div>
+      <div class="box blue" style="margin-top:16px">
+        <h3>Docker Hub vs ECR</h3>
+        <table style="margin-top:10px; font-size:0.9em">
+          <tr><th></th><th>Docker Hub</th><th>ECR</th></tr>
+          <tr><td>Erişim</td><td>Public/Private</td><td>Private (IAM)</td></tr>
+          <tr><td>Entegrasyon</td><td>Genel</td><td>AWS native</td></tr>
+          <tr><td>Güvenlik</td><td>Standart</td><td>KMS şifreleme</td></tr>
+          <tr><td>Maliyet</td><td>Ücretsiz (public)</td><td>0.10$/GB/ay</td></tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h3>ECR'ye Push</h3>
+      <pre style="font-size:0.85em"><span class="cm"># 1. Repository oluştur</span>
+<span class="kw">aws</span> ecr create-repository \
+  --repository-name menu-classifier \
+  --region eu-central-1
+
+<span class="cm"># 2. Login</span>
+<span class="kw">aws</span> ecr get-login-password \
+  --region eu-central-1 | \
+  <span class="kw">docker</span> login --username AWS \
+  --password-stdin \
+  <span class="str">$ACCOUNT.dkr.ecr.eu-central-1.amazonaws.com</span>
+
+<span class="cm"># 3. Tag & Push</span>
+<span class="kw">docker</span> tag menu-classifier:latest \
+  <span class="str">$ACCOUNT.dkr.ecr.eu-central-1.amazonaws.com</span>/menu-classifier:latest
+
+<span class="kw">docker</span> push \
+  <span class="str">$ACCOUNT.dkr.ecr.eu-central-1.amazonaws.com</span>/menu-classifier:latest</pre>
+    </div>
+  </div>
+</div>
+
+<!-- 04: ECS + Fargate -->
+<div class="slide">
+  <h2>ECS + Fargate</h2>
+  <div class="two-col" style="align-items:start">
+    <div>
+      <div class="box purple" style="margin-bottom:14px">
+        <h3>ECS Kavramları</h3>
+        <ul style="font-size:1.0em">
+          <li><strong>Cluster</strong> — Container'ların çalışacağı ortam</li>
+          <li><strong>Task Definition</strong> — Container ayarları (image, CPU, RAM, port)</li>
+          <li><strong>Task</strong> — Task Definition'dan çalışan örnek</li>
+          <li><strong>Service</strong> — Kaç Task çalışmalı? (desired count)</li>
+        </ul>
+      </div>
+      <div class="box green">
+        <h3>Neden Fargate?</h3>
+        <ul style="font-size:1.0em">
+          <li>EC2 sunucu yönetmek zorunda değilsin</li>
+          <li>Patch, update, scale → AWS halleder</li>
+          <li>Kullandığın kadar öde (vCPU + RAM)</li>
+          <li>Demo için ideal: hızlı kur, hızlı sil</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="arch-stack" style="font-size:0.95em; gap:9px">
+        <div class="arch-box yellow" style="text-align:left; padding:12px 16px"><strong>Kullanıcı</strong> — internet üzerinden</div>
+        <div style="text-align:center; color:var(--muted); font-size:1.1em">↓ HTTPS</div>
+        <div class="arch-box orange" style="text-align:left; padding:12px 16px">
+          <strong>ALB</strong> — Application Load Balancer<br>
+          <span style="font-size:0.85em">myapp.eu-central-1.elb.amazonaws.com</span>
+        </div>
+        <div style="text-align:center; color:var(--muted); font-size:1.1em">↓ Round Robin</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px">
+          <div class="arch-box purple" style="font-size:0.85em">ECS Task 1</div>
+          <div class="arch-box purple" style="font-size:0.85em">ECS Task 2</div>
+          <div class="arch-box purple" style="font-size:0.85em">ECS Task 3</div>
+        </div>
+        <div style="text-align:center; color:var(--muted); font-size:0.9em">↑ Fargate (sunucusuz)</div>
+        <div class="arch-box" style="border-color:var(--border); font-size:0.85em">ECR — image buradan çekilir</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 05: Deployment Adımları -->
+<div class="slide">
+  <h2>Deployment Adımları</h2>
+  <div class="two-col" style="align-items:start">
+    <div>
+      <div class="step-row"><span class="step-num orange">1</span><div><strong>Image build et ve ECR'ye push et</strong><br><span style="color:var(--muted)"><code>docker build</code> → <code>docker push</code></span></div></div>
+      <div class="step-row"><span class="step-num">2</span><div><strong>ECS Cluster oluştur</strong><br><span style="color:var(--muted)">AWS Console → ECS → Create Cluster → Fargate</span></div></div>
+      <div class="step-row"><span class="step-num">3</span><div><strong>Task Definition oluştur</strong><br><span style="color:var(--muted)">Container image URL, port 8080, 1 vCPU, 2 GB RAM</span></div></div>
+      <div class="step-row"><span class="step-num">4</span><div><strong>Service oluştur</strong><br><span style="color:var(--muted)">Desired count: 2, ALB ekle</span></div></div>
+      <div class="step-row"><span class="step-num">5</span><div><strong>Security Group ayarla</strong><br><span style="color:var(--muted)">Inbound: port 80 (ALB) ve port 8080 (container)</span></div></div>
+      <div class="step-row"><span class="step-num green">6</span><div><strong>ALB DNS alınır — erişim açılır!</strong><br><span style="color:var(--muted)">Tarayıcıda test, öğrencilere paylaş</span></div></div>
+    </div>
+    <div>
+      <div class="box yellow" style="margin-bottom:14px">
+        <h3>Ön Koşullar</h3>
+        <ul class="check" style="font-size:0.95em">
+          <li>AWS CLI kurulu</li>
+          <li><code>aws configure</code> tamamlandı</li>
+          <li>IAM: ECR + ECS izinleri var</li>
+          <li>ECR repository oluşturuldu</li>
+          <li>Image push edildi</li>
+        </ul>
+      </div>
+      <div class="highlight orange" style="font-size:0.95em">
+        <strong>İpucu:</strong> Cluster ve Task Definition'ı önceden oluşturun. Demo sırasında sadece Service oluşturma adımını canlı yapın.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 06: CLI Komutları -->
+<div class="slide">
+  <h2>CLI ile ECR Push</h2>
+  <pre style="font-size:0.9em"><span class="cm">## Değişkenleri ayarla</span>
+REGION=<span class="str">"eu-central-1"</span>
+ACCOUNT_ID=<span class="str">"$(aws sts get-caller-identity --query Account --output text)"</span>
+REPO=<span class="str">"menu-classifier"</span>
+TAG=<span class="str">"latest"</span>
+ECR_URI=<span class="str">"$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"</span>
+
+<span class="cm">## ECR'ye login</span>
+<span class="kw">aws</span> ecr get-login-password --region $REGION | \
+  <span class="kw">docker</span> login --username AWS --password-stdin $ECR_URI
+
+<span class="cm">## Tag & push</span>
+<span class="kw">docker</span> tag $REPO:$TAG $ECR_URI/$REPO:$TAG
+<span class="kw">docker</span> push $ECR_URI/$REPO:$TAG
+
+<span class="cm">## Doğrula</span>
+<span class="kw">aws</span> ecr list-images --repository-name $REPO --region $REGION</pre>
+  <div class="highlight" style="margin-top:14px; font-size:1.0em">
+    Push başarılıysa AWS Console → ECR → Repositories'de görünür. ECS artık bu URL'den image'ı çekebilir.
+  </div>
+</div>
+
+<!-- 07: Task Definition -->
+<div class="slide">
+  <h2>ECS Task Definition</h2>
+  <div class="two-col" style="align-items:start">
+    <div>
+      <div class="box purple" style="margin-bottom:14px">
+        <h3>Task Definition Ayarları</h3>
+        <table style="font-size:0.9em; margin-top:8px">
+          <tr><td><strong>Launch type</strong></td><td>AWS Fargate</td></tr>
+          <tr><td><strong>OS</strong></td><td>Linux/X86_64</td></tr>
+          <tr><td><strong>CPU</strong></td><td>1 vCPU</td></tr>
+          <tr><td><strong>Memory</strong></td><td>2 GB</td></tr>
+          <tr><td><strong>Image URI</strong></td><td><code style="font-size:0.85em">$ECR_URI/menu-classifier:latest</code></td></tr>
+          <tr><td><strong>Container port</strong></td><td>8080 / TCP</td></tr>
+        </table>
+      </div>
+      <div class="box yellow" style="font-size:0.95em">
+        <strong>Environment Variables:</strong><br>
+        <code>MODEL_PATH = /app/menu_mobilenet_model.h5</code><br>
+        <code>AWS_REGION = eu-central-1</code><br>
+        <code>S3_BUCKET = mapindata-menu-images</code>
+      </div>
+    </div>
+    <div>
+      <h3>AWS CLI ile Task Definition</h3>
+      <pre style="font-size:0.82em"><span class="kw">aws</span> ecs register-task-definition \
+  --family menu-classifier \
+  --network-mode awsvpc \
+  --requires-compatibilities FARGATE \
+  --cpu <span class="str">"1024"</span> \
+  --memory <span class="str">"2048"</span> \
+  --container-definitions <span class="str">'[{
+    "name": "menu-classifier",
+    "image": "'$ECR_URI'/menu-classifier:latest",
+    "portMappings": [
+      {"containerPort": 8080, "protocol": "tcp"}
+    ],
+    "environment": [
+      {"name":"MODEL_PATH","value":"/app/menu_mobilenet_model.h5"},
+      {"name":"AWS_REGION","value":"eu-central-1"},
+      {"name":"S3_BUCKET","value":"mapindata-menu-images"}
+    ]
+  }]'</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 08: Service + ALB -->
+<div class="slide">
+  <h2>ECS Service ve Load Balancer</h2>
+  <div class="two-col" style="align-items:start">
+    <div>
+      <div class="box purple" style="margin-bottom:14px">
+        <h3>Service Ayarları</h3>
+        <table style="font-size:0.9em; margin-top:8px">
+          <tr><td><strong>Launch type</strong></td><td>Fargate</td></tr>
+          <tr><td><strong>Task Definition</strong></td><td>menu-classifier</td></tr>
+          <tr><td><strong>Desired count</strong></td><td><strong class="green">2</strong></td></tr>
+          <tr><td><strong>VPC</strong></td><td>Default VPC</td></tr>
+          <tr><td><strong>Subnets</strong></td><td>Min 2 farklı AZ</td></tr>
+          <tr><td><strong>Public IP</strong></td><td>Enabled</td></tr>
+        </table>
+      </div>
+      <div class="box blue">
+        <h3>Load Balancer</h3>
+        <ul style="font-size:0.95em">
+          <li>Type: Application Load Balancer</li>
+          <li>Listener: port 80 (HTTP)</li>
+          <li>Target: container port 8080</li>
+          <li>Health check path: <code>/health</code></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="arch-stack" style="font-size:0.95em; gap:9px">
+        <div class="arch-box orange" style="text-align:left; padding:12px 16px">
+          <strong>ALB</strong><br>
+          <code style="font-size:0.82em">myapp-alb.eu-central-1.elb.amazonaws.com</code>
+        </div>
+        <div style="text-align:center; color:var(--muted)">↓ Round Robin</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
+          <div class="arch-box green" style="font-size:0.88em; text-align:left; padding:10px 14px">
+            <strong>Task 1</strong><br>eu-central-1a<br><span class="green">● Healthy</span>
+          </div>
+          <div class="arch-box green" style="font-size:0.88em; text-align:left; padding:10px 14px">
+            <strong>Task 2</strong><br>eu-central-1b<br><span class="green">● Healthy</span>
+          </div>
+        </div>
+      </div>
+      <div class="highlight green" style="margin-top:14px; font-size:0.95em">
+        Service oluştuktan ~3-5 dakika sonra ALB DNS aktif olur.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 09: Ölçekleme -->
+<div class="slide">
+  <h2>AWS'de Ölçekleme</h2>
+  <div class="two-col" style="align-items:start">
+    <div>
+      <div class="highlight" style="font-size:1.05em">
+        <strong>2. derste sormuştuk:</strong> 500 kişi gelince ne olur?<br>
+        AWS'de cevap tek komut:
+      </div>
+      <pre style="font-size:0.9em; margin-top:14px"><span class="cm"># 5 container'a ölçekle</span>
+<span class="kw">aws</span> ecs update-service \
+  --cluster menu-classifier-cluster \
+  --service menu-classifier-service \
+  --desired-count <span class="num">5</span>
+
+<span class="cm"># Maliyet kontrolü için 2'ye düşür</span>
+<span class="kw">aws</span> ecs update-service \
+  --cluster menu-classifier-cluster \
+  --service menu-classifier-service \
+  --desired-count <span class="num">2</span></pre>
+    </div>
+    <div>
+      <div class="box purple" style="margin-bottom:14px">
+        <h3>Auto Scaling (Otomatik)</h3>
+        <p style="font-size:0.95em">CPU %70'i geçince otomatik ölçekle:</p>
+        <ul style="font-size:0.95em; margin-top:8px">
+          <li>Min: 1 task, Max: 10 task</li>
+          <li>CPU &gt; %70 → +1 task ekle</li>
+          <li>CPU &lt; %30 → -1 task çıkar</li>
+          <li>CloudWatch alarmları tetikler</li>
+        </ul>
+      </div>
+      <div class="box green" style="font-size:0.95em">
+        <h3>Lokal vs AWS</h3>
+        <table style="font-size:0.88em; margin-top:8px">
+          <tr><td>Ölçekleme</td><td class="green">1 komut / otomatik</td></tr>
+          <tr><td>Yük dağıtımı</td><td class="green">ALB (yönetilen)</td></tr>
+          <tr><td>Hata toleransı</td><td class="green">Multi-AZ, auto-restart</td></tr>
+          <tr><td>Erişim</td><td class="green">Dünya geneli</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 10: Canlı Test -->
+<div class="slide center">
+  <h2>Canlı Test</h2>
+  <div style="font-family:'JetBrains Mono',monospace; font-size:2.4em; font-weight:700; color:var(--green); margin:14px 0">$ curl -X POST ALB_DNS/predict -F "file=@menu.jpg"</div>
+  <div style="font-size:1.1em; color:var(--muted); margin-bottom:20px">Mapin Data'nın gerçek menu tespit modeli — canlıda.</div>
+  <div style="display:grid; grid-template-columns:200px 1fr 1fr; gap:18px; text-align:left; max-width:920px; margin:0 auto">
+    <!-- QR -->
+    <div class="box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; gap:10px">
+      <img src="../photos/logos/qr.png"
+           alt="QR — henüz oluşturulmadı"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+           style="width:160px; height:160px; border-radius:6px; background:#fff; display:block">
+      <div style="display:none; width:160px; height:160px; background:var(--surface); border:2px dashed var(--border); border-radius:6px; align-items:center; justify-content:center; text-align:center; color:var(--muted); font-size:0.75em; padding:10px">
+        python generate_qrcode.py &lt;URL&gt;<br>çalıştırın
+      </div>
+      <div style="font-size:0.72em; color:var(--muted); font-family:'JetBrains Mono',monospace; text-align:center">
+        Telefon ile tara
+      </div>
+    </div>
+    <!-- Adımlar -->
+    <div class="box green">
+      <h3>Nasıl Test Edersiniz?</h3>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:0.88em; margin-top:10px; line-height:2.1">
+        <div><span class="green">1.</span> QR kodu okutun (telefon)</div>
+        <div><span class="green">2.</span> Upload paneli açılır</div>
+        <div><span class="green">3.</span> Restoran menü görseli yükleyin</div>
+        <div><span class="green">4.</span> Model: menü mü değil mi? → skor</div>
+        <div><span class="green">5.</span> Hepiniz aynı anda deneyin!</div>
+      </div>
+      <pre style="font-size:0.78em; margin-top:12px">{
+  <span class="str">"menu"</span>: <span class="kw">true</span>,
+  <span class="str">"skor"</span>: <span class="num">0.94</span>,
+  <span class="str">"s3_key"</span>: <span class="str">"menu-uploads/..."</span>
+}</pre>
+    </div>
+    <!-- Gözlem -->
+    <div class="box purple">
+      <h3>Neler Gözlemleyin</h3>
+      <ul style="font-size:1.0em">
+        <li>ALB 2 container'a dağıtıyor</li>
+        <li>Görsel S3'e otomatik kaydediliyor</li>
+        <li>CloudWatch → CPU / istek metrikleri</li>
+        <li>Bir container çökse ALB yönlendirir</li>
+      </ul>
+      <div class="highlight green" style="margin-top:12px; font-size:0.9em">
+        Gerçek Mapin Data projesi — production'a taşınmış hali bu.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 11: Maliyet & Temizlik -->
+<div class="slide">
+  <h2>Maliyet ve Temizlik</h2>
+  <div class="two-col" style="align-items:start">
+    <div class="box yellow">
+      <h3>Demo Maliyeti</h3>
+      <table style="font-size:0.9em; margin-top:10px">
+        <tr><td>Fargate (1 vCPU, 2GB) × 2</td><td>~$0.10/saat</td></tr>
+        <tr><td>ALB</td><td>~$0.02/saat</td></tr>
+        <tr><td>ECR (500MB)</td><td>~$0.05/ay</td></tr>
+        <tr><td><strong>Toplam demo</strong></td><td class="green"><strong>~$0.12/saat</strong></td></tr>
+      </table>
+      <p style="margin-top:14px; font-size:0.95em; color:var(--amber)">3 saatlik demo ≈ $0.40. Bırakırsanız birikir!</p>
+    </div>
+    <div class="box red">
+      <h3 style="color:var(--red)">Demo Sonrası — Mutlaka Silin</h3>
+      <pre style="font-size:0.82em; border-left-color:var(--red)"><span class="cm"># 1. Service'i durdur</span>
+<span class="kw">aws</span> ecs update-service \
+  --cluster menu-classifier-cluster \
+  --service menu-classifier-service \
+  --desired-count <span class="num">0</span>
+
+<span class="cm"># 2. Service & Cluster sil</span>
+<span class="kw">aws</span> ecs delete-service \
+  --cluster menu-classifier-cluster \
+  --service menu-classifier-service
+
+<span class="kw">aws</span> ecs delete-cluster \
+  --cluster menu-classifier-cluster
+
+<span class="cm"># 3. ALB: Console → EC2 → Load Balancers</span>
+
+<span class="cm"># 4. ECR (opsiyonel)</span>
+<span class="kw">aws</span> ecr delete-repository \
+  --repository-name menu-classifier --force</pre>
+    </div>
+  </div>
+</div>
+
+<!-- 12: Tüm Yolculuk -->
+<div class="slide">
+  <h2>Tüm Yolculuk</h2>
+  <div class="arrow-flow" style="justify-content:center; flex-wrap:wrap; gap:10px; margin:14px 0 26px">
+    <div class="step" style="background:var(--surface); border:1px solid var(--blue); color:var(--blue)">main.py</div>
+    <div class="arrow">→</div>
+    <div class="step" style="background:var(--surface); border:1px solid var(--green); color:var(--green)">Dockerfile</div>
+    <div class="arrow">→</div>
+    <div class="step" style="background:var(--surface); border:1px solid var(--purple); color:var(--purple)">docker build</div>
+    <div class="arrow">→</div>
+    <div class="step" style="background:var(--orange); color:#0B1117">ECR push</div>
+    <div class="arrow">→</div>
+    <div class="step">ECS Task</div>
+    <div class="arrow">→</div>
+    <div class="step" style="background:var(--green); color:#0B1117">ALB</div>
+    <div class="arrow">→</div>
+    <div class="step orange">Dünya</div>
+  </div>
+  <div class="three-col">
+    <div class="box blue">
+      <h3>Sonraki Adımlar</h3>
+      <ul style="font-size:0.95em">
+        <li>CI/CD: GitHub Actions → ECR push</li>
+        <li>HTTPS: ACM + Route53</li>
+        <li>Monitoring: CloudWatch</li>
+        <li>Kubernetes: EKS'e geçiş</li>
+      </ul>
+    </div>
+    <div class="box green">
+      <h3>Öğrendikleriniz</h3>
+      <ul class="check" style="font-size:0.95em">
+        <li>VM vs Container farkı</li>
+        <li>Dockerfile yazmak</li>
+        <li>docker build & run</li>
+        <li>ECR, ECS, Fargate, ALB</li>
+        <li>AWS'ye canlı deployment</li>
+      </ul>
+    </div>
+    <div class="box purple">
+      <h3>Neden Önemli?</h3>
+      <ul style="font-size:0.95em">
+        <li>Her ML modeli bu akışla yayınlanır</li>
+        <li>Ortam farkı sorunu çözülür</li>
+        <li>Ölçekleme otomatik hale gelir</li>
+        <li>CI/CD entegrasyon kolaylaşır</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 13: Tebrikler -->
+<div class="slide center">
+  <div style="font-family:'JetBrains Mono',monospace; font-size:3.5em; font-weight:700; color:var(--primary); letter-spacing:-0.03em; margin-bottom:10px">[ tamamlandı ]</div>
+  <h1 style="font-size:2.5em; margin-bottom:16px">Tebrikler!</h1>
+  <div style="font-size:1.25em; color:var(--muted); margin-bottom:30px">
+    3 derste bir ML modelini lokal geliştirmeden<br>
+    dünya genelinde erişilebilir bir servise taşıdınız.
+  </div>
+  <div class="highlight" style="max-width:680px; margin:0 auto; font-size:1.2em; text-align:center">
+    <strong>Kod → Container → Bulut</strong><br>
+    Bu döngüyü bilen herkes modern yazılım dünyasında güçlüdür.
+  </div>
+  <div style="margin-top:32px; font-family:'JetBrains Mono',monospace; color:var(--muted); font-size:0.95em">
+    &gt;_ Sorularınız var mı?<span class="cursor"></span>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<nav class="nav">
+  <button id="btn-prev">◀ Geri</button>
+  <span id="counter"></span>
+  <button id="btn-next">İleri ▶</button>
+</nav>
+
+<button id="theme-toggle" title="Tema değiştir"
+  style="position:fixed;top:16px;right:36px;z-index:200;
+         background:var(--surface);border:1px solid var(--border-hi);
+         color:var(--text);width:36px;height:36px;border-radius:8px;
+         cursor:pointer;font-size:1.1em;display:flex;align-items:center;
+         justify-content:center;transition:border-color 0.15s">🌙</button>
+<script>
+const btn=document.getElementById('theme-toggle');
+const saved=localStorage.getItem('theme')||'dark';
+document.documentElement.setAttribute('data-theme',saved);
+btn.textContent=saved==='light'?'🌙':'☀️';
+btn.onclick=()=>{
+  const t=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('theme',t);
+  btn.textContent=t==='light'?'🌙':'☀️';
+};
+btn.onmouseenter=()=>btn.style.borderColor='var(--primary)';
+btn.onmouseleave=()=>btn.style.borderColor='';
+</script>
+<script>
+const slides = [...document.querySelectorAll('.slide')];
+let current = 0;
+slides[0].classList.add('active');
+function show(n) {
+  n = Math.max(0, Math.min(n, slides.length - 1));
+  if (n === current) return;
+  const leaving = slides[current];
+  leaving.classList.remove('active');
+  leaving.classList.add('leaving');
+  leaving.addEventListener('transitionend', () => leaving.classList.remove('leaving'), { once:true });
+  current = n;
+  slides[current].classList.add('active');
+  document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`;
+  document.getElementById('progress').style.width = `${(current + 1) / slides.length * 100}%`;
+}
+document.getElementById('btn-prev').onclick = () => show(current - 1);
+document.getElementById('btn-next').onclick = () => show(current + 1);
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); show(current - 1); }
+  if (e.key === 'Home') show(0); if (e.key === 'End') show(slides.length - 1);
+});
+document.getElementById('counter').textContent = `1 / ${slides.length}`;
+document.getElementById('progress').style.width = `${1 / slides.length * 100}%`;
+</script>
+</body>
+</html>

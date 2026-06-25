@@ -4,7 +4,10 @@ title: "Docker ile Container Dünyasına Giriş"
 date: "2026-06-24"
 description: "3 günlük Docker eğitiminin özeti: konteynerler, image'lar, Dockerfile ve AWS'ye taşıma."
 tags: ["Docker", "Container", "AWS", "DevOps"]
+sunum: "/sunumlar/ders1_docker_giris.html"
 ---
+
+> **Eğitim sunumuna** erişmek için → [Ders 1 Slaytları](/sunumlar/ders1_docker_giris.html)
 
 ## Neden Docker?
 

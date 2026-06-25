@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 1 — Docker'a Giriş</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────── */
+:root {
+  --bg:        #0B1117;
+  --surface:   #111927;
+  --surface-2: #162030;
+  --border:    #1D2B3A;
+  --border-hi: #253B50;
+  --text:      #CDD9E5;
+  --muted:     #5E7A8E;
+  --bright:    #E8F1F8;
+  --primary:     #2496ED;
+  --primary-dim: rgba(36,150,237,0.10);
+  --green:     #00C04B;
+  --green-dim: rgba(0,192,75,0.10);
+  --amber:     #F59E0B;
+  --amber-dim: rgba(245,158,11,0.10);
+  --red:       #F04D4D;
+  --red-dim:   rgba(240,77,77,0.10);
+  --purple:    #8B5CF6;
+  --purple-dim:rgba(139,92,246,0.10);
+}
+
+/* ── RESET ───────────────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, var(--border) 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── DECK & TRANSITIONS ──────────────────────── */
+.deck { position: relative; height: 100vh; overflow: hidden; }
+
+.slide {
+  position: absolute; inset: 0;
+  padding: 56px 88px;
+  display: flex; flex-direction: column; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transform: translateX(52px);
+  transition: opacity 0.38s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
+  z-index: 0;
+}
+.slide.active  { opacity: 1; pointer-events: auto; transform: translateX(0); z-index: 1; }
+.slide.leaving { opacity: 0; transform: translateX(-36px); pointer-events: none; transition-duration: 0.22s; z-index: 0; }
+
+/* ── TYPOGRAPHY ──────────────────────────────── */
+h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.9em; font-weight: 700;
+  color: var(--primary);
+  line-height: 1.15; letter-spacing: -0.02em;
+  margin-bottom: 18px;
+}
+h2 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.95em; font-weight: 700;
+  color: var(--primary);
+  line-height: 1.2; letter-spacing: -0.02em;
+  margin-bottom: 26px;
+}
+h2::before { content: '// '; color: var(--muted); font-weight: 400; font-size: 0.75em; }
+h3 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.05em; font-weight: 600;
+  color: var(--bright);
+  margin-bottom: 12px; letter-spacing: 0.01em;
+}
+p  { font-size: 1.15em; line-height: 1.75; margin-bottom: 12px; }
+ul { list-style: none; font-size: 1.1em; }
+ul li { padding: 7px 0 7px 22px; position: relative; line-height: 1.4; }
+ul li::before { content: "▸"; position: absolute; left: 0; color: var(--primary); font-family: 'JetBrains Mono', monospace; }
+ul.check li::before { content: "✓"; color: var(--green); }
+ul.cross li::before { content: "✗"; color: var(--red); }
+
+/* ── CODE ────────────────────────────────────── */
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--surface); border: 1px solid var(--border-hi);
+  border-radius: 4px; padding: 2px 7px;
+  font-size: 0.88em; color: var(--primary);
+}
+pre {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 8px 8px 0;
+  padding: 18px 22px; font-size: 0.93em; line-height: 1.65;
+  overflow-x: auto; color: var(--bright);
+}
+.kw { color: #FF7B72; } .str { color: #79C0FF; }
+.cm { color: var(--muted); font-style: italic; }
+.fn { color: #D2A8FF; } .num { color: #F2CC60; }
+
+/* ── LAYOUT ──────────────────────────────────── */
+.two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; }
+
+/* ── CARDS ───────────────────────────────────── */
+.box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px 24px;
+}
+.box.blue   { border-color: var(--primary); background: var(--primary-dim); }
+.box.green  { border-color: var(--green);   background: var(--green-dim); }
+.box.yellow { border-color: var(--amber);   background: var(--amber-dim); }
+.box.red    { border-color: var(--red);     background: var(--red-dim); }
+.box.purple { border-color: var(--purple);  background: var(--purple-dim); }
+
+/* ── TABLE ───────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; font-size: 1.05em; }
+th {
+  background: var(--surface-2); color: var(--primary);
+  font-family: 'JetBrains Mono', monospace; font-size: 0.82em;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 12px 16px; text-align: left;
+  border-bottom: 2px solid var(--primary);
+}
+td { border: 1px solid var(--border); padding: 10px 16px; }
+tr:nth-child(even) td { background: var(--surface); }
+
+/* ── HIGHLIGHT ───────────────────────────────── */
+.highlight {
+  background: var(--primary-dim); border-left: 3px solid var(--primary);
+  padding: 14px 20px; border-radius: 0 8px 8px 0;
+  margin: 14px 0; font-size: 1.1em; line-height: 1.65;
+}
+.highlight.green  { background: var(--green-dim);  border-left-color: var(--green); }
+.highlight.red    { background: var(--red-dim);    border-left-color: var(--red); }
+.highlight.yellow { background: var(--amber-dim);  border-left-color: var(--amber); }
+
+/* ── ARCH BOXES ──────────────────────────────── */
+.arch-stack { display: flex; flex-direction: column; gap: 7px; }
+.arch-box {
+  background: var(--surface); border: 1px solid var(--border-hi);
+  border-radius: 8px; padding: 12px 16px; text-align: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.88em;
+}
+.arch-box.blue   { border-color: var(--primary); background: var(--primary-dim); }
+.arch-box.green  { border-color: var(--green);   background: var(--green-dim); }
+.arch-box.yellow { border-color: var(--amber);   background: var(--amber-dim); }
+.arch-box.gray   { border-color: var(--border);  background: var(--surface-2); }
+
+/* ── FLOW ────────────────────────────────────── */
+.arrow-flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+.arrow-flow .step {
+  background: var(--primary); color: #fff;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85em; font-weight: 600;
+  padding: 8px 16px; border-radius: 6px;
+}
+.arrow-flow .arrow { color: var(--muted); font-size: 1.2em; }
+
+/* ── BADGE ───────────────────────────────────── */
+.badge {
+  display: inline-block; background: var(--primary); color: #fff;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.75em; font-weight: 700;
+  padding: 5px 14px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.badge.green  { background: var(--green);  color: #0B1117; }
+.badge.purple { background: var(--purple); }
+
+/* ── MISC ────────────────────────────────────── */
+.subtitle { font-family: 'JetBrains Mono', monospace; font-size: 0.82em; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
+.center { text-align: center; }
+.accent { color: var(--primary); } .green { color: var(--green); }
+.yellow { color: var(--amber); }  .red   { color: var(--red); }
+.muted  { color: var(--muted); }
+
+[data-theme="light"] {
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-2: #F1F5F9;
+  --border: #E2E8F0;
+  --border-hi: #CBD5E1;
+  --text: #1E293B;
+  --muted: #64748B;
+  --bright: #0F172A;
+}
+
+/* Cursor blink — title slide */
+/* --- Speaker intro bileşenleri --- */
+.intro-item { display:flex; align-items:center; gap:12px; margin-bottom:13px; }
+.intro-item:last-child { margin-bottom:0; }
+.intro-logo { height:34px; width:70px; object-fit:contain; background:#fff; border-radius:5px; padding:3px 6px; flex-shrink:0; }
+.intro-logo.sq { width:34px; }
+.intro-info strong { display:block; font-size:0.95em; color:var(--bright); }
+.intro-info span   { font-size:0.82em; color:var(--muted); }
+.skill-badge { background:rgba(36,150,237,0.12); border:1px solid var(--primary); color:var(--primary); padding:5px 13px; border-radius:20px; font-size:0.85em; font-weight:600; white-space:nowrap; }
+.skill-badge.amber  { background:rgba(234,179,8,0.12);   border-color:var(--amber);  color:var(--amber); }
+.skill-badge.green  { background:rgba(0,192,75,0.12);    border-color:var(--green);  color:var(--green); }
+.skill-badge.purple { background:rgba(139,92,246,0.12);  border-color:var(--purple); color:var(--purple); }
+.paper-item { padding-left:12px; margin-bottom:9px; font-size:0.88em; line-height:1.45; border-left:2px solid var(--purple); }
+.paper-item:last-child { margin-bottom:0; }
+.paper-item strong { color:var(--purple); }
+.intro-section { border:1px solid var(--border); border-radius:10px; padding:15px 17px; background:var(--surface); }
+.intro-section-label { font-size:0.72em; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px; font-family:'JetBrains Mono',monospace; }
+
+.cursor {
+  display: inline-block; width: 3px; height: 0.82em;
+  background: var(--primary); margin-left: 3px; vertical-align: middle;
+  animation: blink 1.1s step-end infinite;
+}
+@keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0 } }
+
+/* ── CHROME ──────────────────────────────────── */
+.progress {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+  transition: width 0.4s ease; z-index: 200;
+}
+.lesson-label {
+  position: fixed; top: 22px; left: 36px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7em; font-weight: 700;
+  color: var(--primary); letter-spacing: 0.14em; text-transform: uppercase; z-index: 200;
+}
+.nav { position: fixed; bottom: 28px; right: 36px; display: flex; gap: 8px; align-items: center; z-index: 200; }
+.nav button {
+  background: var(--surface); border: 1px solid var(--border-hi);
+  color: var(--text); padding: 8px 18px; border-radius: 6px; cursor: pointer;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.82em;
+  transition: border-color 0.15s, color 0.15s;
+}
+.nav button:hover { border-color: var(--primary); color: var(--primary); }
+#counter { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 0.8em; min-width: 52px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="lesson-label">ders_01 / docker_giris</div>
+
+<div class="deck">
+
+<!-- 01: Title -->
+<div class="slide">
+  <div class="subtitle">// Konteyner Teknolojileri Eğitimi</div>
+  <h1>Docker ile<br>Konteyner Dünyası<span class="cursor"></span></h1>
+  <p style="color:var(--muted); font-size:1.15em">Kavramlar · Ekosistem · Temel Komutlar</p>
+  <div style="margin-top:40px; display:flex; gap:12px; flex-wrap:wrap">
+    <span class="badge">01 / Docker Giriş</span>
+    <span class="badge green">02 / Deployment</span>
+    <span class="badge purple">03 / AWS</span>
+  </div>
+</div>
+
+<!-- 02: Konuşmacı Tanıtımı -->
+<div class="slide">
+
+  <!-- Header -->
+  <div style="display:flex; align-items:baseline; gap:20px; margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:11px">
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:0.68em; color:var(--muted); margin-bottom:3px">
+        <span style="color:var(--green)">~</span> <span style="color:var(--border-hi)">$</span> whoami
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:1.95em; font-weight:700; color:var(--primary); letter-spacing:-0.03em; line-height:1">Kaan Gümele</div>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace; font-size:0.78em; color:var(--muted)">
+      Applied AI Engineer &nbsp;·&nbsp; Data Scientist &nbsp;·&nbsp; Mapin Data (FT) &amp; Belogic (PT)
+    </div>
+  </div>
+
+  <!-- 2-sütun gövde -->
+  <div style="display:grid; grid-template-columns:38% 1fr; gap:16px; align-items:start">
+
+    <!-- COL 1: Eğitim + Deneyim -->
+    <div style="display:flex; flex-direction:column; gap:11px">
+
+      <div>
+        <div class="intro-section-label">Eğitim</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
+          <div style="border:1px solid var(--border); border-radius:8px; padding:10px 8px; background:var(--surface); display:flex; flex-direction:column; align-items:center; gap:7px">
+            <img src="../photos/logos/imü.jpeg" alt="İMÜ" style="height:58px; width:100%; object-fit:contain; background:#fff; border-radius:6px; padding:5px 8px">
+            <div style="text-align:center; line-height:1.35">
+              <div style="font-size:0.8em; font-weight:600; color:var(--bright)">İMÜ</div>
+              <div style="font-size:0.7em; color:var(--muted)">BSc · 2021–2025</div>
+            </div>
+          </div>
+          <div style="border:1px solid var(--primary); border-radius:8px; padding:10px 8px; background:rgba(36,150,237,0.06); display:flex; flex-direction:column; align-items:center; gap:7px">
+            <img src="../photos/logos/cerrahpasa.png" alt="Cerrahpaşa" style="height:58px; width:100%; object-fit:contain; background:#fff; border-radius:6px; padding:5px 8px">
+            <div style="text-align:center; line-height:1.35">
+              <div style="font-size:0.8em; font-weight:600; color:var(--bright)">Cerrahpaşa</div>
+              <div style="font-size:0.7em; color:var(--primary)">MSc · 2025–devam</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="intro-section-label">Deneyim</div>
+        <div style="display:flex; flex-direction:column; gap:7px">
+          <div style="border:1px solid var(--green); border-radius:8px; padding:9px 11px; background:rgba(0,192,75,0.05); display:flex; align-items:center; gap:10px">
+            <img src="../photos/logos/mapin_data.jpeg" alt="Mapin Data" style="height:46px; width:90px; object-fit:contain; background:#fff; border-radius:5px; padding:4px 7px; flex-shrink:0">
+            <div>
+              <div style="font-size:0.88em; font-weight:600; color:var(--bright)">Mapin Data</div>
+              <div style="font-size:0.75em; color:var(--green)">Applied AI Eng. · Full-time, 1 yıl</div>
+            </div>
+          </div>
+          <div style="border:1px solid var(--border); border-radius:8px; padding:9px 11px; background:var(--surface); display:flex; align-items:center; gap:10px">
+            <div style="height:46px; width:90px; background:var(--surface-2); border:1px solid var(--border); border-radius:5px; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:0.72em; color:var(--muted); flex-shrink:0">Belogic</div>
+            <div>
+              <div style="font-size:0.88em; font-weight:600; color:var(--bright)">Belogic</div>
+              <div style="font-size:0.75em; color:var(--muted)">AI & Data · Part-time, 6 ay</div>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:7px">
+            <div style="border:1px solid var(--border); border-radius:7px; padding:8px 6px; background:var(--surface); display:flex; flex-direction:column; align-items:center; gap:5px">
+              <img src="../photos/logos/migros_one.jpeg" alt="Migros One" style="height:38px; width:100%; object-fit:contain; background:#fff; border-radius:4px; padding:3px 6px">
+              <div style="font-size:0.68em; color:var(--muted); text-align:center">Data Analyst</div>
+            </div>
+            <div style="border:1px solid var(--border); border-radius:7px; padding:8px 6px; background:var(--surface); display:flex; flex-direction:column; align-items:center; gap:5px">
+              <img src="../photos/logos/vbt.svg" alt="VBT" style="height:38px; width:100%; object-fit:contain; background:#fff; border-radius:4px; padding:3px 6px">
+              <div style="font-size:0.68em; color:var(--muted); text-align:center">SW Engineer</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COL 2: Araştırma & Yayın + Teknoloji & Uzmanlık -->
+    <div style="display:flex; flex-direction:column; gap:14px">
+
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+          <div class="intro-section-label" style="margin-bottom:0">Araştırma &amp; Yayın</div>
+          <div style="display:flex; gap:6px; align-items:center">
+            <img src="../photos/logos/tubitak2209.png" alt="TÜBİTAK" style="height:34px; width:68px; object-fit:contain; background:#fff; border-radius:4px; padding:3px 6px">
+            <img src="../photos/logos/ieee_makales.png" alt="IEEE" style="height:34px; width:68px; object-fit:contain; background:#fff; border-radius:4px; padding:3px 6px">
+          </div>
+        </div>
+        <div class="paper-item"><strong>ISMSIT 2025 / TÜBİTAK 2209-A</strong> — Meningioma Tumor Grade Prediction</div>
+        <div class="paper-item"><strong>EANS 2025</strong> — Meningioma Grading (ResNet50)</div>
+        <div class="paper-item"><strong>EANS 2025</strong> — Thoracolumbar Fracture Detection (U-Net)</div>
+        <div class="paper-item"><strong>Black Sea Journal</strong> — Oral Cancer Classification (CNN SOTA)</div>
+      </div>
+
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+          <div class="intro-section-label" style="margin-bottom:0">Teknoloji &amp; Uzmanlık</div>
+          <img src="../photos/logos/aws.png" alt="AWS" style="height:34px; width:52px; object-fit:contain; background:#fff; border-radius:4px; padding:3px 5px">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px">
+          <span class="skill-badge amber" style="font-size:0.78em; padding:5px 12px">AI Agents &amp; LLMs</span>
+          <span class="skill-badge" style="font-size:0.78em; padding:5px 12px">Docker &amp; Kubernetes</span>
+          <span class="skill-badge green" style="font-size:0.78em; padding:5px 12px">DevOps &amp; MLOps</span>
+          <span class="skill-badge" style="font-size:0.78em; padding:5px 12px">AWS Ekosistemi</span>
+          <span class="skill-badge purple" style="font-size:0.78em; padding:5px 12px">RAG &amp; Vector DB</span>
+          <span class="skill-badge" style="font-size:0.78em; padding:5px 12px">Data Science</span>
+          <span class="skill-badge green" style="font-size:0.78em; padding:5px 12px">Computer Vision</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- 03: Yol Haritası -->
+<div class="slide">
+  <h2>3 Derslik Yolculuğumuz</h2>
+  <div class="three-col" style="margin-top:14px">
+    <div class="box blue">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:2.2em; font-weight:700; color:var(--primary); margin-bottom:12px">01</div>
+      <h3>Docker Giriş</h3>
+      <ul>
+        <li>VM vs Konteyner</li>
+        <li>Image, Container, Dockerfile</li>
+        <li>Docker Hub, Compose, Swarm</li>
+      </ul>
+    </div>
+    <div class="box green">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:2.2em; font-weight:700; color:var(--green); margin-bottom:12px">02</div>
+      <h3>Uygulama</h3>
+      <ul>
+        <li>ML modeli + FastAPI</li>
+        <li>Dockerfile yazıyoruz</li>
+        <li>Build → Run → Test</li>
+      </ul>
+    </div>
+    <div class="box purple">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:2.2em; font-weight:700; color:var(--purple); margin-bottom:12px">03</div>
+      <h3>AWS</h3>
+      <ul>
+        <li>ECR, ECS, Fargate</li>
+        <li>Canlıya alma</li>
+        <li>Siz test edersiniz</li>
+      </ul>
+    </div>
+  </div>
+  <div class="arrow-flow" style="margin-top:32px; justify-content:center">
+    <div class="step">Kavramlar</div>
+    <div class="arrow">→</div>
+    <div class="step" style="background:var(--green)">Deployment</div>
+    <div class="arrow">→</div>
+    <div class="step" style="background:var(--purple)">Bulut</div>
+    <div class="arrow">→</div>
+    <div class="step" style="background:var(--amber); color:#0B1117">Dünyaya Açık</div>
+  </div>
+</div>
+
+<!-- 04: Problem -->
+<div class="slide">
+  <h2>"Benim makinemde çalışıyordu!"</h2>
+  <div class="two-col" style="align-items:center; gap:48px">
+    <div>
+      <p>Tanıdık bir senaryo:</p>
+      <div class="box yellow" style="margin:16px 0; font-size:1.1em; line-height:1.75">
+        Bir model eğittin. Çalışıyor.<br>
+        Arkadaşına gönderdin.<br>
+        Arkadaşın çalıştırmaya çalıştı...<br><br>
+        <span class="red" style="font-family:'JetBrains Mono',monospace; font-size:0.9em"><strong>ModuleNotFoundError: No module named 'tensorflow'</strong></span>
+      </div>
+      <div class="box red" style="font-size:1.0em; font-family:'JetBrains Mono',monospace">
+        AttributeError: 'Sequential' has no 'predict_classes'<br>
+        <span style="color:var(--muted); font-size:0.85em"># TF 2.9 → 2.15 sürüm farkı</span>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:3.5em; font-weight:700; color:var(--amber); line-height:1.1">Works on<br>my machine</div>
+      <div style="color:var(--muted); margin-top:14px; font-size:1.0em">Yazılımcının en klasik problemi</div>
+    </div>
+  </div>
+</div>
+
+<!-- 05: Neden Çalışmıyor -->
+<div class="slide">
+  <h2>Neden Çalışmıyor?</h2>
+  <p>Kodun çalışması için tüm katmanların uyumlu olması gerekiyor:</p>
+  <div class="arch-stack" style="margin:20px 0; max-width:540px">
+    <div class="arch-box blue"><strong>Kodunuz</strong> — main.py, model.h5</div>
+    <div class="arch-box yellow"><strong>Kütüphaneler</strong> — tensorflow 2.15, numpy 1.26, pillow 10.3</div>
+    <div class="arch-box" style="border-color:var(--purple); background:var(--purple-dim)"><strong>Python Sürümü</strong> — 3.11.2</div>
+    <div class="arch-box gray"><strong>İşletim Sistemi</strong> — Ubuntu 22.04 / macOS 14 / Windows 11</div>
+    <div class="arch-box" style="border-color:var(--border)"><strong>Donanım</strong> — x86_64 / ARM (Apple Silicon)</div>
+  </div>
+  <div class="highlight">
+    Tek sorun ortam uyumsuzluğu değil — klasik çözüm VM ise onun da ciddi bedeli var.
+  </div>
+  <div class="two-col" style="margin-top:16px">
+    <div class="box yellow" style="font-size:0.92em">
+      <h3>VM ile izole etsek?</h3>
+      <ul class="cross">
+        <li>Her VM için tam OS — <strong>2-4 GB RAM</strong> overhead</li>
+        <li>10 servis = 10 OS güncellemesi, bakım, lisans</li>
+        <li>Yeni VM başlatmak: dakikalar, bazen saatler</li>
+        <li>Boşta bile kaynak tüketiyor</li>
+      </ul>
+    </div>
+    <div class="box red" style="font-size:0.92em">
+      <h3>Maliyet gerçeği</h3>
+      <ul class="cross">
+        <li>8 mikro servis × VM = yüksek bulut faturası</li>
+        <li>Scale etmek yavaş ve pahalı</li>
+        <li>DevOps zamanı: patch, güvenlik, lisans</li>
+        <li>Küçük ekiplerde sürdürülemez</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 06: Docker'ın Cevabı -->
+<div class="slide">
+  <h2>Docker'ın Cevabı</h2>
+  <div class="center" style="margin:8px 0 14px">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:2.5em; font-weight:700; color:var(--primary); letter-spacing:-0.04em">[ ortamı da paketle ]</div>
+  </div>
+  <div class="two-col">
+    <div class="box red">
+      <h3>Eskiden</h3>
+      <ul class="cross" style="font-size:0.92em">
+        <li>requirements.txt gönder, "Python 3.11 kur" de</li>
+        <li>CUDA versiyonunu eşleştir — OS farkı, hata</li>
+        <li>VM kur: her servis için 2-4 GB RAM overhead</li>
+        <li>10 servis = 10 OS güncellemesi, lisans, bakım</li>
+        <li>Ölçekleme yavaş, bulut faturası yüksek</li>
+      </ul>
+    </div>
+    <div class="box green">
+      <h3>Docker ile</h3>
+      <ul class="check" style="font-size:0.92em">
+        <li>Image push et → <code>docker run</code> → bitti</li>
+        <li>Linux, Mac, Windows, AWS — aynı image</li>
+        <li>Konteyner ≈ MB, VM ≈ GB — kernel paylaşımı</li>
+        <li>Yeni konteyner &lt;1 sn, <code>--scale api=10</code> tek komut</li>
+        <li>Dev → CI → Prod → AWS: ortam farkı sıfır</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 07: VM Nedir -->
+<div class="slide">
+  <h2>Sanal Makine (VM) Nedir?</h2>
+  <div class="two-col" style="align-items:start">
+    <div>
+      <p>Fiziksel bir sunucunun üzerinde, sanki ayrı bir bilgisayarmış gibi çalışan tam bir işletim sistemi kopyası.</p>
+      <div class="arch-stack" style="margin-top:18px; font-size:1.0em">
+        <div class="arch-box blue">VM 1 — Ubuntu + App A</div>
+        <div class="arch-box blue">VM 2 — Windows + App B</div>
+        <div class="arch-box yellow"><strong>Hypervisor</strong> (VMware / VirtualBox / KVM)</div>
+        <div class="arch-box gray"><strong>Host İşletim Sistemi</strong></div>
+        <div class="arch-box" style="border-color:var(--border)"><strong>Fiziksel Sunucu</strong></div>
+      </div>
+    </div>
+    <div class="box yellow">
+      <h3>VM Özellikleri</h3>
+      <ul style="font-size:1.05em">
+        <li>Tam izolasyon (ayrı kernel)</li>
+        <li>Tam işletim sistemi kopyası</li>
+        <li>Boyut: <span class="yellow">Gigabaytlar</span></li>
+        <li>Başlangıç: <span class="yellow">Dakikalar</span></li>
+        <li>RAM/CPU ağır</li>
+        <li>Güçlü izolasyon</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 08: Container Nedir -->
+<div class="slide">
+  <h2>Konteyner Nedir?</h2>
+  <div class="two-col" style="align-items:start">
+    <div>
+      <p>Aynı işletim sistemi çekirdeğini paylaşan, izole edilmiş süreçler. Sadece uygulama katmanını paketler.</p>
+      <div class="arch-stack" style="margin-top:18px; font-size:1.0em">
+        <div class="arch-box blue">Konteyner 1 — App A</div>
+        <div class="arch-box blue">Konteyner 2 — App B</div>
+        <div class="arch-box blue">Konteyner 3 — App C</div>
+        <div class="arch-box green"><strong>Docker Engine</strong> (Runtime)</div>
+        <div class="arch-box gray"><strong>Host OS + Kernel</strong> — paylaşımlı</div>
+        <div class="arch-box" style="border-color:var(--border)"><strong>Fiziksel Sunucu</strong></div>
+      </div>
+    </div>
+    <div class="box green">
+      <h3>Konteyner Özellikleri</h3>
+      <ul style="font-size:1.05em">
+        <li>Kernel paylaşır</li>
+        <li>Sadece uygulama katmanı paketlenir</li>
+        <li>Boyut: <span class="green">Megabaytlar</span></li>
+        <li>Başlangıç: <span class="green">Saniyeler</span></li>
+        <li>Düşük kaynak tüketimi</li>
+        <li>Yüksek taşınabilirlik</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 09: VM vs Container Tablo -->
+<div class="slide">
+  <h2>VM vs Konteyner</h2>
+  <table style="margin-top:14px">
+    <thead><tr><th>Özellik</th><th>Sanal Makine (VM)</th><th>Konteyner</th></tr></thead>
+    <tbody>
+      <tr><td>İzolasyon</td><td>Tam (ayrı kernel)</td><td>Süreç seviyesi</td></tr>
+      <tr><td>Boyut</td><td class="yellow">Gigabaytlar</td><td class="green">Megabaytlar</td></tr>
+      <tr><td>Başlangıç</td><td class="yellow">Dakikalar</td><td class="green">Saniyeler</td></tr>
+      <tr><td>Kaynak tüketimi</td><td class="yellow">Yüksek</td><td class="green">Düşük</td></tr>
+      <tr><td>Taşınabilirlik</td><td>Orta</td><td class="green">Çok yüksek</td></tr>
+      <tr><td>Güvenlik izolasyonu</td><td class="green">Çok güçlü</td><td>İyi</td></tr>
+      <tr><td>Kullanım alanı</td><td>Farklı OS gerektiğinde</td><td class="green">Uygulama dağıtımı</td></tr>
+    </tbody>
+  </table>
+  <div class="highlight" style="margin-top:20px">
+    <strong>Analoji:</strong> VM = Ayrı bir bina kiralamak. Konteyner = Aynı binada farklı ofisler.
+  </div>
+</div>
+
+<!-- GÖRSEL: Docker Mimarisi -->
+<div class="slide">
+  <h2>Docker Nasıl Çalışır?</h2>
+  <div class="highlight" style="font-size:1.05em; margin-bottom:16px">
+    Docker 3 bileşenden oluşur: <strong>Client</strong> (komutları gönderir) · <strong>Daemon</strong> (her şeyi yönetir) · <strong>Registry</strong> (image'ları depolar). <code>docker run</code>, <code>docker build</code>, <code>docker pull</code> — hepsi bu üçgen üzerinden çalışır.
+  </div>
+  <img src="../photos/docker-architecture.webp"
+       alt="Docker Mimarisi — Client, Docker Daemon ve Registry"
+       style="width:100%; max-height:62vh; object-fit:contain; border-radius:10px; background:#ffffff; padding:14px;">
+</div>
+
+<!-- 10: Image -->
+<div class="slide">
+  <h2>Docker Image — "Tarif"</h2>
+  <div class="two-col">
+    <div>
+      <div class="highlight">
+        Image = Salt okunur <strong>şablon</strong>. Dockerfile'dan üretilir. Çalışmaz, sadece tarifi içerir.
+      </div>
+      <div class="box blue" style="margin-top:18px">
+        <h3>Bir image içinde ne var?</h3>
+        <ul>
+          <li>Base OS (python:3.11-slim)</li>
+          <li>Kütüphaneler (tensorflow, fastapi...)</li>
+          <li>Uygulama kodu (main.py, model.py...)</li>
+          <li>Başlatma komutu (CMD)</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="arch-stack" style="font-size:0.95em">
+        <div class="arch-box blue"><strong>Uygulama Kodu</strong> — main.py, model.py</div>
+        <div class="arch-box yellow"><strong>Kütüphaneler</strong> — tensorflow, fastapi</div>
+        <div class="arch-box" style="border-color:var(--purple); background:var(--purple-dim)"><strong>Python 3.11</strong></div>
+        <div class="arch-box gray"><strong>Debian Slim</strong> — linux base</div>
+      </div>
+      <p style="margin-top:16px; font-size:1.0em; color:var(--muted)">
+        Her katman önbelleğe alınır. Değişen katmandan sonrası rebuild edilir.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Image Katman Yapısı -->
+<div class="slide">
+  <h2>Image Katman Yapısı</h2>
+  <div class="two-col" style="align-items:start; gap:36px; margin-top:6px">
+    <!-- Sol: docker_image_nedir.png içeriği — metin olarak -->
+    <div>
+      <div class="highlight" style="font-size:1.0em; margin-bottom:18px">
+        Her Dockerfile satırı yeni bir <strong>katman (layer)</strong> oluşturur.
+        Katmanlar <strong>read-only</strong>'dir, önbelleğe alınır ve container'lar arasında paylaşılır.
+      </div>
+      <div class="box blue" style="padding:20px 22px">
+        <h3 style="margin-bottom:12px">Docker Image Nedir?</h3>
+        <p style="font-size:0.96em; line-height:1.75; margin-bottom:12px">
+          <code>docker build</code> sonrasında Dockerfile'daki talimatlara göre
+          <strong>read-only</strong>, statik yapıda bir <strong>image</strong> dosyası oluşturulur.
+        </p>
+        <p style="font-size:0.96em; line-height:1.75; margin-bottom:0">
+          Dockerfile'daki her satıra karşılık Image içinde bir <strong>layer</strong> oluşur.
+          <span class="accent">Image = katmanlar topluluğudur.</span>
+        </p>
+      </div>
+    </div>
+    <!-- Sağ: docker_image_yapısı.png içeriği — HTML katman diyagramı -->
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:0.72em; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:12px">Docker Image Yapısı — Katmanlar</div>
+      <div style="border:1px solid var(--border); border-radius:10px; overflow:hidden">
+        <div style="background:rgba(36,150,237,0.18); border-bottom:1px solid var(--primary); padding:13px 18px; display:flex; justify-content:space-between; align-items:center">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.88em; color:var(--primary)"><strong>writable</strong> — Container Layer</span>
+          <span style="font-size:0.72em; color:var(--muted); font-family:'JetBrains Mono',monospace">R/W</span>
+        </div>
+        <div style="background:rgba(245,158,11,0.12); border-bottom:1px solid var(--border); padding:12px 18px; display:flex; justify-content:space-between; align-items:center">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.85em"><span style="color:var(--amber)">COPY</span> app/ app/</span>
+          <span style="font-size:0.7em; color:var(--muted)">Image Layer</span>
+        </div>
+        <div style="background:rgba(245,158,11,0.08); border-bottom:1px solid var(--border); padding:12px 18px; display:flex; justify-content:space-between; align-items:center">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.85em"><span style="color:var(--amber)">RUN</span> pip install tensorflow</span>
+          <span style="font-size:0.7em; color:var(--muted)">Image Layer</span>
+        </div>
+        <div style="background:rgba(245,158,11,0.04); border-bottom:1px solid var(--border); padding:12px 18px; display:flex; justify-content:space-between; align-items:center">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.85em"><span style="color:var(--amber)">COPY</span> requirements.txt .</span>
+          <span style="font-size:0.7em; color:var(--muted)">Image Layer</span>
+        </div>
+        <div style="background:rgba(0,192,75,0.1); border-bottom:1px solid var(--border); padding:12px 18px; display:flex; justify-content:space-between; align-items:center">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.85em; color:var(--green)"><strong>FROM</strong> python:3.11-slim</span>
+          <span style="font-size:0.7em; color:var(--muted)">Base Image</span>
+        </div>
+        <div style="background:var(--surface-2); padding:12px 18px; display:flex; justify-content:space-between; align-items:center">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.85em; color:var(--muted)">Linux Kernel</span>
+          <span style="font-size:0.7em; color:var(--muted)">Host OS</span>
+        </div>
+      </div>
+      <p style="font-size:0.78em; color:var(--muted); margin-top:10px; text-align:right; font-family:'JetBrains Mono',monospace">↑ her katman üsttekini referans alır</p>
+    </div>
+  </div>
+</div>
+
+<!-- 11: Container -->
+<div class="slide">
+  <h2>Container — "Tarif Hayata Geçince"</h2>
+  <div class="highlight" style="font-size:1.2em">
+    Container = Image'dan çalışan <strong>örnek (instance)</strong>. Bir image'dan sonsuz container açılabilir.
+  </div>
+  <div class="two-col" style="margin-top:22px">
+    <div class="box blue">
+      <h3>Image → Container</h3>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:0.9em; margin-top:10px; line-height:2.0">
+        <div>image-classifier:v1</div>
+        <div style="padding-left:20px; color:var(--muted)">↓ docker run</div>
+        <div><span class="green">●</span> classifier-1 &nbsp;(:8000)</div>
+        <div><span class="green">●</span> classifier-2 &nbsp;(:8001)</div>
+        <div><span class="green">●</span> classifier-3 &nbsp;(:8002)</div>
+      </div>
+    </div>
+    <div class="box green">
+      <h3>Temel Komutlar</h3>
+      <pre style="font-size:0.88em; border:none; background:transparent; padding:8px 0"><span class="cm"># Image listesi</span>
+<span class="kw">docker</span> images
+
+<span class="cm"># Çalışanlar</span>
+<span class="kw">docker</span> ps
+
+<span class="cm"># Çalıştır</span>
+<span class="kw">docker</span> run -d -p 8000:8000 myapp:v1
+
+<span class="cm"># Durdur / Sil</span>
+<span class="kw">docker</span> stop myapp
+<span class="kw">docker</span> rm myapp</pre>
+    </div>
+  </div>
+</div>
+
+<!-- 12: Dockerfile -->
+<div class="slide">
+  <h2>Dockerfile — "Tarif Defteri"</h2>
+  <div class="two-col" style="align-items:start">
+    <pre style="font-size:0.9em"><span class="cm"># 1. Base image</span>
+<span class="kw">FROM</span> python:3.11-slim
+
+<span class="cm"># 2. Çalışma dizini</span>
+<span class="kw">WORKDIR</span> /app
+
+<span class="cm"># 3. Önce bağımlılıklar (cache!)</span>
+<span class="kw">COPY</span> requirements.txt .
+<span class="kw">RUN</span> pip install -r requirements.txt
+
+<span class="cm"># 4. Sonra uygulama kodu</span>
+<span class="kw">COPY</span> app/ app/
+
+<span class="cm"># 5. Dinlenen port</span>
+<span class="kw">EXPOSE</span> 8000
+
+<span class="cm"># 6. Başlangıç komutu</span>
+<span class="kw">CMD</span> [<span class="str">"uvicorn"</span>, <span class="str">"app.main:app"</span>,
+     <span class="str">"--host"</span>, <span class="str">"0.0.0.0"</span>, <span class="str">"--port"</span>, <span class="str">"8000"</span>]</pre>
+    <div>
+      <div class="highlight" style="margin-bottom:16px; font-size:1.0em">
+        <strong>COPY requirements önce neden?</strong><br>
+        Kod değiştiğinde sadece son 2 katman rebuild edilir. pip install tekrar çalışmaz → hız!
+      </div>
+      <div class="highlight" style="font-size:1.0em">
+        <strong>--host 0.0.0.0 neden?</strong><br>
+        127.0.0.1 container içine kapanır. 0.0.0.0 dışarıdan port mapping ile erişimi açar.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GÖRSEL: Dockerfile vs Docker Compose -->
+<div class="slide">
+  <h2>Dockerfile vs Docker Compose</h2>
+  <div class="two-col" style="align-items:center; gap:40px">
+    <img src="../photos/docker-compose.jpeg" alt="Dockerfile vs Docker Compose karşılaştırması"
+         style="width:100%; border-radius:10px; border:1px solid var(--border); background:#fff; padding:8px">
+    <div>
+      <div class="box blue" style="margin-bottom:16px">
+        <h3>Dockerfile</h3>
+        <ul style="font-size:1.05em">
+          <li><strong>Tek</strong> container tarif eder</li>
+          <li>Image nasıl inşa edilir?</li>
+          <li><code>docker build</code> ile kullanılır</li>
+          <li>Tek servis → yeterli</li>
+        </ul>
+      </div>
+      <div class="box green">
+        <h3>Docker Compose</h3>
+        <ul style="font-size:1.05em">
+          <li><strong>Birden fazla</strong> servisi yönetir</li>
+          <li>API + DB + Cache = tek YAML dosyası</li>
+          <li><code>docker compose up</code> ile çalışır</li>
+          <li>Geliştirme ortamı için ideal</li>
+        </ul>
+      </div>
+      <div class="highlight" style="margin-top:14px; font-size:0.95em">
+        İkisi birbirini <strong>tamamlar</strong>. Compose, Dockerfile'ı <em>kullanır</em>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 13: Docker Hub -->
+<div class="slide">
+  <h2>Docker Hub — "Image Kütüphanesi"</h2>
+  <div class="two-col">
+    <div>
+      <div class="highlight">
+        Docker Hub, image'ları saklayıp paylaştığınız merkezi registry'dir.<br>
+        GitHub nasıl kodun deposuysa, Hub da image'ların deposudur.
+      </div>
+      <div class="box blue" style="margin-top:18px">
+        <h3>Popüler Resmi Image'lar</h3>
+        <ul style="font-size:1.0em; font-family:'JetBrains Mono',monospace">
+          <li>python:3.11-slim</li>
+          <li>nginx:latest</li>
+          <li>postgres:15-alpine</li>
+          <li>redis:7-alpine</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="box green">
+        <h3>Temel Komutlar</h3>
+        <pre style="font-size:0.88em; border:none; background:transparent; padding:8px 0"><span class="cm"># İndir</span>
+<span class="kw">docker</span> pull nginx
+
+<span class="cm"># Etiketle</span>
+<span class="kw">docker</span> tag myapp:v1 user/myapp:v1
+
+<span class="cm"># Yükle</span>
+<span class="kw">docker</span> push user/myapp:v1</pre>
+      </div>
+      <div class="box yellow" style="margin-top:16px; font-size:1.0em">
+        <strong>AWS karşılığı:</strong><br>
+        ECR (Elastic Container Registry) — özel, şirket içi registry
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 14: Port & Volume -->
+<div class="slide">
+  <h2>Port Mapping & Volume</h2>
+  <div class="two-col">
+    <div>
+      <h3>Port Mapping — <code>-p</code></h3>
+      <pre style="font-size:0.95em; margin-top:10px"><span class="kw">docker</span> run -p <span class="num">8080</span>:<span class="num">8000</span> myapp
+<span class="cm">#         ↑host  ↑container</span></pre>
+      <p style="margin-top:12px; font-size:1.05em">Tarayıcıdan <code>:8080</code> → container'ın <code>:8000</code> portuna.</p>
+      <div class="box blue" style="margin-top:14px; font-size:1.0em">
+        Birden fazla container:<br>
+        <code>-p 8001:8000</code>, <code>-p 8002:8000</code>...
+      </div>
+    </div>
+    <div>
+      <h3>Volume — <code>-v</code></h3>
+      <p style="margin-top:10px">Container silinince veriler gider. Volume ile kalıcı olur.</p>
+      <pre style="font-size:0.95em; margin-top:10px"><span class="kw">docker</span> run -v <span class="str">/host/data</span>:<span class="str">/app/data</span> myapp</pre>
+      <div class="box green" style="margin-top:14px; font-size:1.0em">
+        Kullanım: veritabanı verileri, yüklenen dosyalar, log dosyaları
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 15: Docker Compose -->
+<div class="slide">
+  <h2>Docker Compose</h2>
+  <div class="two-col" style="align-items:start">
+    <pre style="font-size:0.9em"><span class="kw">version</span>: <span class="str">"3.8"</span>
+
+<span class="kw">services</span>:
+  <span class="fn">api</span>:
+    <span class="kw">build</span>: .
+    <span class="kw">ports</span>:
+      - <span class="str">"8000:8000"</span>
+    <span class="kw">depends_on</span>:
+      - <span class="fn">redis</span>
+
+  <span class="fn">redis</span>:
+    <span class="kw">image</span>: <span class="str">redis:7-alpine</span>
+    <span class="kw">ports</span>:
+      - <span class="str">"6379:6379"</span></pre>
+    <div>
+      <div class="box blue">
+        <h3>Komutlar</h3>
+        <pre style="font-size:0.88em; border:none; background:transparent; padding:8px 0"><span class="kw">docker</span> compose up -d
+
+<span class="kw">docker</span> compose logs -f
+
+<span class="cm"># 3 api instance</span>
+<span class="kw">docker</span> compose up --scale api=<span class="num">3</span>
+
+<span class="kw">docker</span> compose down</pre>
+      </div>
+      <div class="highlight green" style="margin-top:14px; font-size:1.0em">
+        Birden fazla servisi tek dosyayla yönet. Geliştirme ve test için ideal.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 16: Swarm & Ekosistem -->
+<div class="slide">
+  <h2>Swarm ve Ekosistem</h2>
+  <!-- Swarm + K8s üstte yan yana -->
+  <div class="two-col" style="align-items:start; margin-bottom:18px">
+    <div class="box blue">
+      <h3>Docker Swarm</h3>
+      <p style="font-size:1.0em">Birden fazla sunucuya container dağıtmak için Docker'ın orkestrasyon çözümü.</p>
+      <ul style="font-size:0.95em; margin-top:8px">
+        <li>Manager + Worker node'lar</li>
+        <li>Otomatik yük dağıtımı</li>
+        <li><code>--replicas 5</code> ile ölçekleme</li>
+        <li>Kurulumu basit</li>
+      </ul>
+    </div>
+    <div class="box yellow">
+      <h3>Kubernetes (K8s)</h3>
+      <p style="font-size:1.0em">Endüstri standardı. Swarm'dan güçlü, daha karmaşık. AWS'de EKS olarak gelir.</p>
+    </div>
+  </div>
+  <!-- Ekosistem haritası tam genişlikte -->
+  <div>
+    <div style="font-size:0.78em; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; font-family:'JetBrains Mono',monospace; margin-bottom:10px">Ekosistem Haritası</div>
+    <div style="border:1.5px solid var(--yellow); border-radius:12px; padding:14px 18px; background:rgba(234,179,8,0.05)">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:0.88em; color:var(--yellow); font-weight:700; margin-bottom:10px">BULUT &nbsp;·&nbsp; AWS ECS / EKS / Azure ACI</div>
+      <div style="border:1.5px solid var(--purple); border-radius:10px; padding:12px 14px; background:rgba(139,92,246,0.06); margin-bottom:8px">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.85em; color:var(--purple); font-weight:700; margin-bottom:10px">ORKESTRASYON &nbsp;·&nbsp; Swarm / Kubernetes</div>
+        <div style="border:1.5px solid var(--green); border-radius:8px; padding:10px 12px; background:rgba(0,192,75,0.06)">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:0.82em; color:var(--green); font-weight:700; margin-bottom:8px">COMPOSE &nbsp;·&nbsp; çoklu container yönetimi</div>
+          <div style="display:flex; gap:8px">
+            <div style="flex:1; border:1.5px solid var(--primary); border-radius:6px; padding:9px 0; background:rgba(36,150,237,0.1); text-align:center; font-family:'JetBrains Mono',monospace; font-size:0.82em; color:var(--primary)">container</div>
+            <div style="flex:1; border:1.5px solid var(--primary); border-radius:6px; padding:9px 0; background:rgba(36,150,237,0.1); text-align:center; font-family:'JetBrains Mono',monospace; font-size:0.82em; color:var(--primary)">container</div>
+            <div style="flex:1; border:1.5px solid var(--primary); border-radius:6px; padding:9px 0; background:rgba(36,150,237,0.1); text-align:center; font-family:'JetBrains Mono',monospace; font-size:0.82em; color:var(--primary)">container</div>
+            <div style="flex:1; border:1.5px solid var(--primary); border-radius:6px; padding:9px 0; background:rgba(36,150,237,0.1); text-align:center; font-family:'JetBrains Mono',monospace; font-size:0.82em; color:var(--primary)">container</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:0.75em; color:var(--muted); text-align:right; font-family:'JetBrains Mono',monospace">compose → yerel &nbsp;·&nbsp; swarm / k8s → prod</div>
+    </div>
+    <div style="margin-top:10px; display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:0.85em">
+      <div style="border:1px solid var(--border-hi); border-radius:5px; padding:5px 10px; color:var(--muted)">Dockerfile</div>
+      <span style="color:var(--muted)">→</span>
+      <div style="border:1px solid var(--border-hi); border-radius:5px; padding:5px 10px; color:var(--text)">Image</div>
+      <span style="color:var(--muted)">→</span>
+      <div style="border:1px solid var(--primary); border-radius:5px; padding:5px 10px; background:rgba(36,150,237,0.08); color:var(--primary)">Registry</div>
+      <span style="color:var(--muted); font-size:0.85em">Docker Hub / ECR / GHCR</span>
+    </div>
+  </div>
+</div>
+
+<!-- 17: Özet -->
+<div class="slide center">
+  <h2>1. Dersi Tamamladık</h2>
+  <div class="three-col" style="margin:24px 0">
+    <div class="box blue">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:2em; font-weight:700; color:var(--primary); margin-bottom:10px">[ ]</div>
+      <h3>Image</h3>
+      <p style="font-size:1.0em">Salt okunur şablon. Dockerfile'dan üretilir.</p>
+    </div>
+    <div class="box green">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:2em; font-weight:700; color:var(--green); margin-bottom:10px">▶</div>
+      <h3>Container</h3>
+      <p style="font-size:1.0em">Image'dan çalışan örnek. Saniyeler içinde başlar.</p>
+    </div>
+    <div class="box" style="border-color:var(--purple); background:var(--purple-dim)">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:2em; font-weight:700; color:var(--purple); margin-bottom:10px">≡</div>
+      <h3>Dockerfile</h3>
+      <p style="font-size:1.0em">Image nasıl inşa edilir? FROM, RUN, COPY, CMD.</p>
+    </div>
+  </div>
+  <div class="highlight" style="font-size:1.15em; text-align:center">
+    <strong>Sonraki ders:</strong> Gerçek bir ML modelini Docker ile paketleyip çalıştırıyoruz.
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<nav class="nav">
+  <button id="btn-prev">◀ Geri</button>
+  <span id="counter"></span>
+  <button id="btn-next">İleri ▶</button>
+</nav>
+
+<button id="theme-toggle" title="Tema değiştir"
+  style="position:fixed;top:16px;right:36px;z-index:200;
+         background:var(--surface);border:1px solid var(--border-hi);
+         color:var(--text);width:36px;height:36px;border-radius:8px;
+         cursor:pointer;font-size:1.1em;display:flex;align-items:center;
+         justify-content:center;transition:border-color 0.15s">🌙</button>
+<script>
+const btn=document.getElementById('theme-toggle');
+const saved=localStorage.getItem('theme')||'dark';
+document.documentElement.setAttribute('data-theme',saved);
+btn.textContent=saved==='light'?'🌙':'☀️';
+btn.onclick=()=>{
+  const t=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('theme',t);
+  btn.textContent=t==='light'?'🌙':'☀️';
+};
+btn.onmouseenter=()=>btn.style.borderColor='var(--primary)';
+btn.onmouseleave=()=>btn.style.borderColor='';
+</script>
+<script>
+const slides = [...document.querySelectorAll('.slide')];
+let current = 0;
+slides[0].classList.add('active');
+
+function show(n) {
+  n = Math.max(0, Math.min(n, slides.length - 1));
+  if (n === current) return;
+  const leaving = slides[current];
+  leaving.classList.remove('active');
+  leaving.classList.add('leaving');
+  leaving.addEventListener('transitionend', () => leaving.classList.remove('leaving'), { once: true });
+  current = n;
+  slides[current].classList.add('active');
+  document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`;
+  document.getElementById('progress').style.width = `${(current + 1) / slides.length * 100}%`;
+}
+
+document.getElementById('btn-prev').onclick = () => show(current - 1);
+document.getElementById('btn-next').onclick = () => show(current + 1);
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); show(current - 1); }
+  if (e.key === 'Home') show(0);
+  if (e.key === 'End') show(slides.length - 1);
+});
+
+document.getElementById('counter').textContent = `1 / ${slides.length}`;
+document.getElementById('progress').style.width = `${1 / slides.length * 100}%`;
+</script>
+</body>
+</html>

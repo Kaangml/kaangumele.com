@@ -3,24 +3,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 const projects = [
   {
-    name: 'menu-classifier',
-    url: 'https://github.com/Kaangml/menu-classifier',
-    desc: 'Restoran menülerini tespit eden binary classifier. FastAPI + MobileNet V2, AWS ECR → ECS Fargate üzerinde production\'da.',
-  },
-  {
     name: 'autonomous-browser-ai',
     url: 'https://github.com/Kaangml/autonomous-browser-ai-agent',
-    desc: 'LLM destekli otonom web tarama ajanı. Hedefleri kendi başına belirler, adımları çalıştırır. AWS Bedrock.',
+    desc: 'Google Maps için LLM destekli otonom tarama ajanı. Manuel QA\'yı ~%80 azalttı. LangGraph + AWS Bedrock.',
   },
   {
-    name: 'aws-live-dashboard',
-    url: 'https://github.com/Kaangml/aws-live-dashboard',
-    desc: 'AWS kaynak ve maliyet metriklerini gerçek zamanlı izleyen dashboard. CloudWatch entegrasyonu.',
+    name: 'multi-hop-rag-pipeline',
+    url: 'https://github.com/Kaangml/autonomous-browser-ai-agent-bedrock',
+    desc: 'Chroma + Neo4j + özel chunking stratejileri ile gelişmiş RAG pipeline. ~%25-30 retrieval iyileştirmesi.',
   },
   {
     name: 'city2graph',
     url: 'https://github.com/Kaangml/city2graph',
     desc: 'Şehir coğrafi verilerini graf yapısına dönüştürür. Overture Maps + PostGIS + NetworkX.',
+  },
+  {
+    name: 'dental-lesion-segmentation',
+    url: 'https://github.com/Kaangml/Segmentation_teeth',
+    desc: 'U-Net tabanlı diş lezyonu segmentasyon modeli. Tıbbi görüntüleme alanında yayınlanmış araştırma.',
   },
 ];
 
@@ -39,12 +39,13 @@ const recentPosts = Object.entries(postModules)
 
     <section class="hero">
       <h1><span class="prefix">//</span> kaan gümele</h1>
-      <p class="role">Applied AI Engineer · İstanbul</p>
+      <p class="role">Applied AI Engineer & Data Scientist · İstanbul</p>
       <p class="bio">
-        Veri toplarım, model kurarım, production'a taşırım.
-        <a href="https://mapindata.com" target="_blank" rel="noopener">Mapindata</a>'da
-        LLM ajanları ve computer vision sistemleri geliştiriyorum.
-        Sıfırdan çalışan sistemler inşa ediyorum.
+        Otonom ajanlar, RAG pipeline'ları ve production-grade vision modelleri dahil
+        uçtan uca ML/AI sistemleri inşa ediyorum.
+        <a href="https://mapindata.com" target="_blank" rel="noopener">Mapin Data</a>'da
+        big data, LLM ajanları ve computer vision üzerinde çalışıyorum.
+        Tıbbi AI alanında yayınlanmış araştırmacı.
       </p>
     </section>
 
@@ -89,7 +90,6 @@ const recentPosts = Object.entries(postModules)
 <style>
 .container { padding-top: 72px; padding-bottom: 80px; }
 
-.hero { }
 .hero h1 {
   font-size: clamp(1.75rem, 5vw, 2.25rem);
   letter-spacing: -0.03em;
@@ -114,7 +114,7 @@ const recentPosts = Object.entries(postModules)
 .project-list { display: flex; flex-direction: column; }
 .project-item {
   display: grid;
-  grid-template-columns: 210px 1fr;
+  grid-template-columns: 230px 1fr;
   gap: 8px 24px;
   padding: 14px 0;
   border-bottom: 1px solid var(--border);

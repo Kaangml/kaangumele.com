@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 2 — Deployment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0B1117;
+  --surface:   #111927;
+  --surface-2: #162030;
+  --border:    #1D2B3A;
+  --border-hi: #253B50;
+  --text:      #CDD9E5;
+  --muted:     #5E7A8E;
+  --bright:    #E8F1F8;
+  --primary:     #00C04B;
+  --primary-dim: rgba(0,192,75,0.10);
+  --green:     #00C04B;
+  --green-dim: rgba(0,192,75,0.10);
+  --blue:      #2496ED;
+  --blue-dim:  rgba(36,150,237,0.10);
+  --amber:     #F59E0B;
+  --amber-dim: rgba(245,158,11,0.10);
+  --red:       #F04D4D;
+  --red-dim:   rgba(240,77,77,0.10);
+  --purple:    #8B5CF6;
+  --purple-dim:rgba(139,92,246,0.10);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Inter',system-ui,sans-serif;
+  background-color:var(--bg);
+  background-image:radial-gradient(circle,var(--border) 1.5px,transparent 1.5px);
+  background-size:28px 28px;
+  color:var(--text); height:100vh; overflow:hidden; user-select:none;
+}
+.deck { position:relative; height:100vh; overflow:hidden; }
+.slide {
+  position:absolute; inset:0; padding:56px 88px;
+  display:flex; flex-direction:column; justify-content:center;
+  opacity:0; pointer-events:none;
+  transform:translateX(52px);
+  transition:opacity 0.38s ease,transform 0.38s cubic-bezier(0.22,1,0.36,1);
+  z-index:0;
+}
+.slide.active  { opacity:1; pointer-events:auto; transform:translateX(0); z-index:1; }
+.slide.leaving { opacity:0; transform:translateX(-36px); pointer-events:none; transition-duration:0.22s; z-index:0; }
+
+h1 { font-family:'JetBrains Mono',monospace; font-size:2.9em; font-weight:700; color:var(--primary); line-height:1.15; letter-spacing:-0.02em; margin-bottom:18px; }
+h2 { font-family:'JetBrains Mono',monospace; font-size:1.95em; font-weight:700; color:var(--primary); line-height:1.2; letter-spacing:-0.02em; margin-bottom:26px; }
+h2::before { content:'// '; color:var(--muted); font-weight:400; font-size:0.75em; }
+h3 { font-family:'JetBrains Mono',monospace; font-size:1.05em; font-weight:600; color:var(--bright); margin-bottom:12px; }
+p  { font-size:1.15em; line-height:1.75; margin-bottom:12px; }
+ul { list-style:none; font-size:1.1em; }
+ul li { padding:7px 0 7px 22px; position:relative; line-height:1.4; }
+ul li::before { content:"▸"; position:absolute; left:0; color:var(--primary); font-family:'JetBrains Mono',monospace; }
+ul.check li::before { content:"✓"; color:var(--green); }
+
+code { font-family:'JetBrains Mono',monospace; background:var(--surface); border:1px solid var(--border-hi); border-radius:4px; padding:2px 7px; font-size:0.88em; color:var(--primary); }
+pre  { font-family:'JetBrains Mono',monospace; background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--primary); border-radius:0 8px 8px 0; padding:18px 22px; font-size:0.93em; line-height:1.65; overflow-x:auto; color:var(--bright); }
+.kw { color:#FF7B72; } .str { color:#79C0FF; } .cm { color:var(--muted); font-style:italic; } .fn { color:#D2A8FF; } .num { color:#F2CC60; }
+
+.two-col   { display:grid; grid-template-columns:1fr 1fr; gap:32px; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:22px; }
+
+.box { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px 24px; }
+.box.blue   { border-color:var(--blue);   background:var(--blue-dim); }
+.box.green  { border-color:var(--green);  background:var(--green-dim); }
+.box.yellow { border-color:var(--amber);  background:var(--amber-dim); }
+.box.red    { border-color:var(--red);    background:var(--red-dim); }
+.box.purple { border-color:var(--purple); background:var(--purple-dim); }
+
+table { width:100%; border-collapse:collapse; font-size:1.05em; }
+th { background:var(--surface-2); color:var(--primary); font-family:'JetBrains Mono',monospace; font-size:0.82em; text-transform:uppercase; letter-spacing:0.08em; padding:12px 16px; text-align:left; border-bottom:2px solid var(--primary); }
+td { border:1px solid var(--border); padding:10px 16px; }
+tr:nth-child(even) td { background:var(--surface); }
+
+.highlight { background:var(--primary-dim); border-left:3px solid var(--primary); padding:14px 20px; border-radius:0 8px 8px 0; margin:14px 0; font-size:1.1em; line-height:1.65; }
+.highlight.blue { background:var(--blue-dim); border-left-color:var(--blue); }
+.highlight.red  { background:var(--red-dim);  border-left-color:var(--red); }
+
+.arch-stack { display:flex; flex-direction:column; gap:7px; }
+.arch-box { background:var(--surface); border:1px solid var(--border-hi); border-radius:8px; padding:12px 16px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:0.88em; }
+.arch-box.blue  { border-color:var(--blue);  background:var(--blue-dim); }
+.arch-box.green { border-color:var(--green); background:var(--green-dim); }
+
+.arrow-flow { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:14px 0; }
+.arrow-flow .step { background:var(--primary); color:#0B1117; font-family:'JetBrains Mono',monospace; font-size:0.85em; font-weight:700; padding:8px 16px; border-radius:6px; }
+.arrow-flow .arrow { color:var(--muted); font-size:1.2em; }
+
+.step-row { display:flex; align-items:flex-start; margin:10px 0; gap:14px; font-size:1.05em; }
+.step-num { flex-shrink:0; width:28px; height:28px; border:2px solid var(--primary); color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:0.85em; font-weight:700; }
+
+.badge { display:inline-block; background:var(--primary); color:#0B1117; font-family:'JetBrains Mono',monospace; font-size:0.75em; font-weight:700; padding:5px 14px; border-radius:4px; letter-spacing:0.08em; text-transform:uppercase; }
+.subtitle { font-family:'JetBrains Mono',monospace; font-size:0.82em; letter-spacing:0.08em; color:var(--muted); margin-bottom:6px; }
+.center { text-align:center; }
+.green  { color:var(--green); } .yellow { color:var(--amber); }
+.red    { color:var(--red); }   .muted  { color:var(--muted); }
+
+[data-theme="light"] {
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-2: #F1F5F9;
+  --border: #E2E8F0;
+  --border-hi: #CBD5E1;
+  --text: #1E293B;
+  --muted: #64748B;
+  --bright: #0F172A;
+}
+
+.cursor { display:inline-block; width:3px; height:0.82em; background:var(--primary); margin-left:3px; vertical-align:middle; animation:blink 1.1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.progress { position:fixed; top:0; left:0; height:3px; background:var(--primary); box-shadow:0 0 10px var(--primary); transition:width 0.4s ease; z-index:200; }
+.lesson-label { position:fixed; top:22px; left:36px; font-family:'JetBrains Mono',monospace; font-size:0.7em; font-weight:700; color:var(--primary); letter-spacing:0.14em; text-transform:uppercase; z-index:200; }
+.nav { position:fixed; bottom:28px; right:36px; display:flex; gap:8px; align-items:center; z-index:200; }
+.nav button { background:var(--surface); border:1px solid var(--border-hi); color:var(--text); padding:8px 18px; border-radius:6px; cursor:pointer; font-family:'JetBrains Mono',monospace; font-size:0.82em; transition:border-color 0.15s,color 0.15s; }
+.nav button:hover { border-color:var(--primary); color:var(--primary); }
+#counter { color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.8em; min-width:52px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="lesson-label">ders_02 / deployment</div>
+
+<div class="deck">
+
+<!-- 01: Title -->
+<div class="slide">
+  <div class="subtitle">// Konteyner Teknolojileri Eğitimi</div>
+  <h1>Uygulamayı<br>Konteynere Taşıyoruz<span class="cursor"></span></h1>
+  <p style="color:var(--muted); font-size:1.15em">FastAPI · MobileNetV2 · Docker Build & Run · Ölçekleme</p>
+  <div style="margin-top:40px"><span class="badge">02 / Canlı Deployment</span></div>
+  <div class="arrow-flow" style="margin-top:28px">
+    <div class="step">Kod Yaz</div><div class="arrow">→</div>
+    <div class="step">Dockerfile</div><div class="arrow">→</div>
+    <div class="step">docker build</div><div class="arrow">→</div>
+    <div class="step">docker run</div><div class="arrow">→</div>
+    <div class="step">Test Et</div>
+  </div>
+</div>
+
+<!-- 02: Bugün Ne Yapacağız -->
+<div class="slide">
+  <h2>Bugün Ne Yapacağız?</h2>
+  <div class="two-col" style="margin-top:8px">
+    <div>
+      <div class="step-row"><span class="step-num">1</span><div><strong>Uygulamayı tanıyoruz</strong><br><span style="color:var(--muted)">Görüntü sınıflandırma API — FastAPI + MobileNetV2</span></div></div>
+      <div class="step-row"><span class="step-num">2</span><div><strong>GitHub repo'yu inceliyoruz</strong><br><span style="color:var(--muted)">Proje yapısı, hangi dosya ne işe yarar</span></div></div>
+      <div class="step-row"><span class="step-num">3</span><div><strong>Dockerfile adım adım yazıyoruz</strong><br><span style="color:var(--muted)">Her satırın ne yaptığını açıklıyoruz</span></div></div>
+      <div class="step-row"><span class="step-num">4</span><div><strong>Build edip çalıştırıyoruz</strong><br><span style="color:var(--muted)"><code>docker build</code> → <code>docker run</code> → test</span></div></div>
+      <div class="step-row"><span class="step-num">5</span><div><strong>Kriz senaryosu</strong><br><span style="color:var(--muted)">500 kişi aynı anda gelirse? Ölçekleme sorunu.</span></div></div>
+    </div>
+    <div class="box blue">
+      <h3>Sonunda Elimizde Ne Olacak?</h3>
+      <p style="font-size:1.0em">Tarayıcıdan resim yükle → API tahmin döndürsün:</p>
+      <pre style="font-size:0.88em; margin-top:10px; border-left-color:var(--blue)">{
+  <span class="str">"dosya"</span>: <span class="str">"kedi.jpg"</span>,
+  <span class="str">"tahminler"</span>: [
+    {<span class="str">"sinif"</span>: <span class="str">"Egyptian Cat"</span>,
+     <span class="str">"guven"</span>: <span class="num">87.3</span>},
+    {<span class="str">"sinif"</span>: <span class="str">"Tabby"</span>,
+     <span class="str">"guven"</span>: <span class="num">8.1</span>}
+  ]
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- 03: Uygulama Tanıtımı -->
+<div class="slide">
+  <h2>Uygulama: Görüntü Sınıflandırma</h2>
+  <div class="two-col" style="align-items:start">
+    <div>
+      <div class="highlight blue" style="font-size:1.05em">
+        <strong>Model:</strong> MobileNetV2 — Google tarafından geliştirilmiş, mobil cihazlar için optimize edilmiş CNN.
+        ImageNet ile önceden eğitilmiş → <strong>1000 farklı nesneyi</strong> tanır.
+      </div>
+      <div style="margin-top:20px">
+        <div class="arch-box green" style="margin-bottom:8px; font-size:1.05em; text-align:left; padding:14px 18px">
+          &gt;_ Kullanıcı resim yüklüyor → POST /predict
+        </div>
+        <div style="text-align:center; color:var(--muted); font-size:1.2em">↓</div>
+        <div class="arch-box blue" style="margin:8px 0; font-size:1.05em; text-align:left; padding:14px 18px">
+          FastAPI → resmi alır, MobileNetV2'ye verir
+        </div>
+        <div style="text-align:center; color:var(--muted); font-size:1.2em">↓</div>
+        <div class="arch-box" style="border-color:var(--purple); background:var(--purple-dim); font-size:1.05em; text-align:left; padding:14px 18px">
+          Model → Top-3 tahmin + güven % döndürür
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="box green">
+        <h3>Stack</h3>
+        <table style="margin-top:10px">
+          <tr><td><strong>Web Framework</strong></td><td>FastAPI</td></tr>
+          <tr><td><strong>Server</strong></td><td>Uvicorn</td></tr>
+          <tr><td><strong>ML</strong></td><td>TensorFlow CPU</td></tr>
+          <tr><td><strong>Model</strong></td><td>MobileNetV2 (ImageNet)</td></tr>
+          <tr><td><strong>Image İşleme</strong></td><td>Pillow</td></tr>
+          <tr><td><strong>Base Image</strong></td><td>python:3.11-slim</td></tr>
+        </table>
+      </div>
+      <div class="box yellow" style="margin-top:14px; font-size:1.0em">
+        <strong>Neden MobileNetV2?</strong><br>
+        ~14 MB model · Hızlı · 1000 sınıf · Çarpıcı demo sonuçları
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 04: Repo Yapısı -->
+<div class="slide">
+  <h2>GitHub Repo Yapısı</h2>
+  <div class="two-col" style="align-items:start">
+    <pre style="font-size:1.05em">image-classifier-api/
+│
+├── app/
+│   ├── <span class="fn">__init__.py</span>
+│   ├── <span class="fn">main.py</span>    <span class="cm">← FastAPI app</span>
+│   └── <span class="fn">model.py</span>   <span class="cm">← ML tahmin</span>
+│
+├── <span class="str">requirements.txt</span>
+├── <span class="kw">Dockerfile</span>
+├── <span class="fn">docker-compose.yml</span>
+└── <span class="fn">README.md</span></pre>
+    <div>
+      <div class="box blue" style="margin-bottom:14px">
+        <h3>main.py</h3>
+        <ul style="font-size:1.0em">
+          <li><code>GET /</code> — Hoş geldin sayfası</li>
+          <li><code>POST /predict</code> — Resim al, tahmin döndür</li>
+          <li><code>GET /health</code> — Servis sağlık kontrolü</li>
+          <li><code>GET /docs</code> — Swagger UI (otomatik)</li>
+        </ul>
+      </div>
+      <div class="box green">
+        <h3>model.py</h3>
+        <ul style="font-size:1.0em">
+          <li>MobileNetV2 yükler (ilk istek)</li>
+          <li>Resmi 224×224'e boyutlandırır</li>
+          <li>Normalize eder (<code>preprocess_input</code>)</li>
+          <li>Top-3 sonucu decode eder</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 05: Kod - main.py -->
+<div class="slide">
+  <h2>app/main.py</h2>
+  <pre style="font-size:0.92em"><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, UploadFile, File, HTTPException
+<span class="kw">from</span> PIL <span class="kw">import</span> Image
+<span class="kw">import</span> io
+<span class="kw">from</span> app.model <span class="kw">import</span> predict_image
+
+app = <span class="fn">FastAPI</span>(title=<span class="str">"Görüntü Sınıflandırma API"</span>)
+
+<span class="cm">@app.post("/predict")</span>
+<span class="kw">async def</span> <span class="fn">predict</span>(file: UploadFile = <span class="fn">File</span>(...)):
+    <span class="kw">if not</span> file.content_type.<span class="fn">startswith</span>(<span class="str">"image/"</span>):
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status_code=<span class="num">400</span>, detail=<span class="str">"Sadece resim dosyası kabul edilir"</span>)
+
+    contents = <span class="kw">await</span> file.<span class="fn">read</span>()
+    image = Image.<span class="fn">open</span>(io.<span class="fn">BytesIO</span>(contents))
+    tahminler = <span class="fn">predict_image</span>(image)
+    <span class="kw">return</span> {<span class="str">"dosya"</span>: file.filename, <span class="str">"tahminler"</span>: tahminler}
+
+<span class="cm">@app.get("/health")</span>
+<span class="kw">async def</span> <span class="fn">health</span>():
+    <span class="kw">return</span> {<span class="str">"durum"</span>: <span class="str">"çalışıyor"</span>}</pre>
+  <div class="highlight blue" style="margin-top:14px; font-size:1.0em">
+    <strong>FastAPI avantajı:</strong> <code>/docs</code> adresine gidince Swagger UI otomatik açılır. Frontend yazmadan API test edilebilir.
+  </div>
+</div>
+
+<!-- 06: Kod - model.py -->
+<div class="slide">
+  <h2>app/model.py</h2>
+  <pre style="font-size:0.92em"><span class="kw">from</span> tensorflow.keras.applications <span class="kw">import</span> MobileNetV2
+<span class="kw">from</span> tensorflow.keras.applications.mobilenet_v2 <span class="kw">import</span> (
+    preprocess_input, decode_predictions
+)
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+_model = <span class="kw">None</span>  <span class="cm"># Singleton — bir kere yükle</span>
+
+<span class="kw">def</span> <span class="fn">_get_model</span>():
+    <span class="kw">global</span> _model
+    <span class="kw">if</span> _model <span class="kw">is None</span>:
+        _model = <span class="fn">MobileNetV2</span>(weights=<span class="str">"imagenet"</span>)
+    <span class="kw">return</span> _model
+
+<span class="kw">def</span> <span class="fn">predict_image</span>(image, top_k=<span class="num">3</span>):
+    model = <span class="fn">_get_model</span>()
+    img = image.<span class="fn">convert</span>(<span class="str">"RGB"</span>).<span class="fn">resize</span>((<span class="num">224</span>, <span class="num">224</span>))
+    arr = np.<span class="fn">expand_dims</span>(np.<span class="fn">array</span>(img, dtype=np.float32), axis=<span class="num">0</span>)
+    arr = <span class="fn">preprocess_input</span>(arr)
+    preds = model.<span class="fn">predict</span>(arr, verbose=<span class="num">0</span>)
+    <span class="kw">return</span> [{<span class="str">"sinif"</span>: l, <span class="str">"guven"</span>: <span class="fn">round</span>(s*<span class="num">100</span>,<span class="num">2</span>)} <span class="kw">for</span> _,l,s <span class="kw">in</span> <span class="fn">decode_predictions</span>(preds,top_k)[<span class="num">0</span>]]</pre>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px">
+    <div class="box blue" style="font-size:0.95em"><strong>Singleton neden?</strong><br>Model ~14 MB, yüklenmesi birkaç saniye. Her istekte yüklesek API yavaş olur.</div>
+    <div class="box green" style="font-size:0.95em"><strong>preprocess_input neden?</strong><br>MobileNetV2, [-1, 1] aralığında piksel bekler. Fonksiyon [0,255]'i dönüştürür.</div>
+  </div>
+</div>
+
+<!-- 07: Dockerfile -->
+<div class="slide">
+  <h2>Dockerfile — Adım Adım</h2>
+  <div class="two-col" style="align-items:start">
+    <pre style="font-size:0.9em"><span class="kw">FROM</span> python:3.11-slim
+
+<span class="kw">WORKDIR</span> /app
+
+<span class="cm"># Sistem paketleri (Pillow için)</span>
+<span class="kw">RUN</span> apt-get update && apt-get install -y \
+    libglib2.0-0 libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/*
+
+<span class="cm"># Önce bağımlılıklar (cache!)</span>
+<span class="kw">COPY</span> requirements.txt .
+<span class="kw">RUN</span> pip install --no-cache-dir -r requirements.txt
+
+<span class="cm"># Model ağırlıklarını build'de indir</span>
+<span class="kw">RUN</span> python -c "from tensorflow.keras.applications \
+    import MobileNetV2; MobileNetV2(weights='imagenet')"
+
+<span class="cm"># Uygulama kodu (en sona — sık değişir)</span>
+<span class="kw">COPY</span> app/ app/
+
+<span class="kw">EXPOSE</span> 8000
+<span class="kw">CMD</span> [<span class="str">"uvicorn"</span>, <span class="str">"app.main:app"</span>,
+     <span class="str">"--host"</span>, <span class="str">"0.0.0.0"</span>, <span class="str">"--port"</span>, <span class="str">"8000"</span>]</pre>
+    <div>
+      <div class="box blue" style="margin-bottom:14px; font-size:0.95em">
+        <h3>Sıralama neden önemli?</h3>
+        <ul style="font-size:0.95em">
+          <li><code>apt-get</code> — OS paketleri (hiç değişmez)</li>
+          <li><code>COPY requirements</code> → <code>pip install</code> — yavaş ama nadir değişir</li>
+          <li><code>Model indirme</code> — build'de bir kere</li>
+          <li><code>COPY app/</code> — hızlı, sık değişir → sona</li>
+        </ul>
+        Kod güncellediğinizde sadece son katman rebuild edilir.
+      </div>
+      <div class="highlight blue" style="font-size:0.95em">
+        <strong>--host 0.0.0.0:</strong><br>
+        127.0.0.1 container içine kapanır. 0.0.0.0 port mapping ile dışarıya açar.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GÖRSEL: Dockerfile vs Docker Compose -->
+<div class="slide">
+  <h2>Dockerfile vs Docker Compose</h2>
+  <div class="highlight" style="font-size:1.05em; margin-bottom:16px">
+    <strong>Dockerfile</strong> → tek servis, tek image. <strong>docker-compose.yml</strong> → birden fazla servis, tek komutla hepsi ayağa kalkar.
+    Bizim projemizde API + ölçekleme için Compose kullanacağız.
+  </div>
+  <img src="../photos/docker-compose.jpeg"
+       alt="Dockerfile vs Docker Compose"
+       style="width:100%; max-height:62vh; object-fit:contain; border-radius:10px; background:#f8f8f8; padding:16px;">
+</div>
+
+<!-- 08: Build & Run -->
+<div class="slide">
+  <h2>docker build & docker run</h2>
+  <div class="two-col" style="align-items:start">
+    <div>
+      <h3>1. Image İnşa Et</h3>
+      <pre style="font-size:0.93em"><span class="kw">docker</span> build -t image-classifier:v1 .
+
+<span class="cm"># İlk build: ~15-20 dk (TF indirme)</span>
+<span class="cm"># Sonraki build: ~30 saniye (cache)</span>
+
+<span class="cm"># Boyutu kontrol et</span>
+<span class="kw">docker</span> images image-classifier</pre>
+      <div class="box blue" style="margin-top:14px; font-size:0.95em">
+        <strong>-t</strong> → isim:tag ver<br>
+        <strong>.</strong> → Dockerfile bu dizinde
+      </div>
+    </div>
+    <div>
+      <h3>2. Çalıştır & Test Et</h3>
+      <pre style="font-size:0.93em"><span class="kw">docker</span> run -d \
+  -p 8000:8000 \
+  --name classifier \
+  image-classifier:v1
+
+<span class="cm"># Log takibi</span>
+<span class="kw">docker</span> logs -f classifier
+
+<span class="cm"># Tarayıcıda aç</span>
+<span class="cm"># http://localhost:8000/docs</span>
+
+<span class="cm"># Curl ile test</span>
+<span class="kw">curl</span> -X POST http://localhost:8000/predict \
+  -F <span class="str">"file=@kedi.jpg"</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 09: Container Komutları -->
+<div class="slide">
+  <h2>Container Komutları</h2>
+  <div class="two-col" style="align-items:start; gap:28px">
+    <div style="display:flex; flex-direction:column; gap:14px">
+      <div>
+        <h3 style="margin-bottom:8px; font-size:0.9em; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em">Durum &amp; İzleme</h3>
+        <pre style="font-size:0.88em"><span class="cm"># Çalışan containerlar</span>
+<span class="kw">docker</span> ps
+
+<span class="cm"># Tüm containerlar (durmuş dahil)</span>
+<span class="kw">docker</span> ps -a
+
+<span class="cm"># Canlı CPU / RAM kullanımı</span>
+<span class="kw">docker</span> stats classifier
+
+<span class="cm"># Log takibi</span>
+<span class="kw">docker</span> logs -f classifier</pre>
+      </div>
+      <div>
+        <h3 style="margin-bottom:8px; font-size:0.9em; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em">İçine Gir &amp; İncele</h3>
+        <pre style="font-size:0.88em"><span class="cm"># Container içine gir</span>
+<span class="kw">docker</span> exec -it classifier bash
+
+<span class="cm"># İçeride</span>
+ls /app          <span class="cm"># dosyaları gör</span>
+python --version <span class="cm"># Python'u doğrula</span>
+exit
+
+<span class="cm"># Tam metadata (IP, portlar, mount)</span>
+<span class="kw">docker</span> inspect classifier</pre>
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:14px">
+      <div>
+        <h3 style="margin-bottom:8px; font-size:0.9em; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em">Durdur &amp; Temizle</h3>
+        <pre style="font-size:0.88em"><span class="cm"># Durdur</span>
+<span class="kw">docker</span> stop classifier
+
+<span class="cm"># Sil</span>
+<span class="kw">docker</span> rm classifier
+
+<span class="cm"># Tüm çalışanları durdur</span>
+<span class="kw">docker</span> stop $(<span class="kw">docker</span> ps -q)
+
+<span class="cm"># Tüm durmuşları sil</span>
+<span class="kw">docker</span> rm $(<span class="kw">docker</span> ps -aq)
+
+<span class="cm"># Kullanılmayan her şeyi temizle</span>
+<span class="kw">docker</span> system prune</pre>
+      </div>
+      <div class="box blue" style="font-size:0.92em">
+        <h3>docker ps çıktısını oku</h3>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.82em; line-height:1.9; margin-top:6px">
+          <div><span style="color:var(--primary)">CONTAINER ID</span> — kısa hash</div>
+          <div><span style="color:var(--primary)">IMAGE</span> — hangi image'dan</div>
+          <div><span style="color:var(--primary)">STATUS</span> — Up / Exited / Paused</div>
+          <div><span style="color:var(--primary)">PORTS</span> — <code>0.0.0.0:8000→8000/tcp</code></div>
+          <div><span style="color:var(--primary)">NAMES</span> — classifier</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 10: Test -->
+<div class="slide">
+  <h2>Swagger UI ile Test</h2>
+  <div class="two-col" style="align-items:start">
+    <div>
+      <div class="box blue" style="margin-bottom:16px">
+        <h3>Adımlar</h3>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.9em; line-height:2.0; margin-top:8px">
+          <div><span class="green">1.</span> http://localhost:8000/docs</div>
+          <div><span class="green">2.</span> POST /predict → Try it out</div>
+          <div><span class="green">3.</span> Resim dosyası seç</div>
+          <div><span class="green">4.</span> Execute</div>
+          <div><span class="green">5.</span> JSON yanıtı gör</div>
+        </div>
+      </div>
+      <div class="highlight" style="font-size:1.0em">
+        Health check: <code>http://localhost:8000/health</code><br>
+        Anında çalıştığını doğrular.
+      </div>
+    </div>
+    <div>
+      <h3>Beklenen Yanıt</h3>
+      <pre style="font-size:0.95em">{
+  <span class="str">"dosya"</span>: <span class="str">"kedi.jpg"</span>,
+  <span class="str">"tahminler"</span>: [
+    {
+      <span class="str">"sinif"</span>: <span class="str">"Egyptian Cat"</span>,
+      <span class="str">"guven_yuzdesi"</span>: <span class="num">87.34</span>
+    },
+    {
+      <span class="str">"sinif"</span>: <span class="str">"Tabby"</span>,
+      <span class="str">"guven_yuzdesi"</span>: <span class="num">8.12</span>
+    },
+    {
+      <span class="str">"sinif"</span>: <span class="str">"Tiger Cat"</span>,
+      <span class="str">"guven_yuzdesi"</span>: <span class="num">4.54</span>
+    }
+  ]
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- 10: Kriz Senaryosu -->
+<div class="slide">
+  <h2>Kriz Senaryosu</h2>
+  <div style="text-align:center; margin-bottom:18px">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:3em; font-weight:700; color:var(--amber)">[ ! ] ALERT</div>
+    <div style="font-size:1.25em; color:var(--muted); margin-top:6px">Uygulamayı paylaştınız. 500 kişi aynı anda istek attı.</div>
+  </div>
+  <div class="two-col">
+    <div class="box red">
+      <h3>Tek Container'da Sorun</h3>
+      <ul style="font-size:1.0em">
+        <li>Model <span style="color:var(--red)">sıralı işler</span></li>
+        <li>500. kullanıcı dakikalarca bekler</li>
+        <li>CPU %100'e çıkar</li>
+        <li>Timeout hataları başlar</li>
+        <li>Container çöker → herkes erişemez</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box yellow" style="margin-bottom:14px">
+        <h3>İlk Akla Gelen</h3>
+        <pre style="font-size:0.88em; border-left-color:var(--amber)"><span class="kw">docker</span> run -d -p <span class="num">8001</span>:8000 image-classifier:v1
+<span class="kw">docker</span> run -d -p <span class="num">8002</span>:8000 image-classifier:v1
+<span class="kw">docker</span> run -d -p <span class="num">8003</span>:8000 image-classifier:v1</pre>
+      </div>
+      <div class="box red" style="font-size:0.95em">
+        <h3>Yeni Sorunlar</h3>
+        <ul style="font-size:0.95em">
+          <li>Kullanıcı hangi porta gidecek?</li>
+          <li>Yük nasıl dağıtılacak?</li>
+          <li>Container çökerse ne olur?</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 11: docker run vs docker compose -->
+<div class="slide">
+  <h2>docker run vs docker compose</h2>
+  <div class="two-col" style="align-items:start; margin-bottom:20px">
+    <div class="box red">
+      <h3><code style="font-size:0.9em">docker run</code></h3>
+      <p style="font-size:0.95em; line-height:1.65; margin:0">
+        Tek bir container'ı tek seferlik başlatırsın. Her parametre
+        — port, env, volume, network — komut satırına yazılır.
+        Tekrar çalıştırmak istersen aynı komutu hatırlamak zorundasın.
+        İkinci bir container eklemek istersen ikinci bir komut daha.
+      </p>
+    </div>
+    <div class="box green">
+      <h3><code style="font-size:0.9em">docker compose</code></h3>
+      <p style="font-size:0.95em; line-height:1.65; margin:0">
+        Tüm yapıyı bir YAML dosyasında tanımlarsın. Kim, hangi port,
+        hangi env, hangi volume, hangi sırayla ayağa kalkar — hepsi dosyada.
+        Sonra sadece <code>docker compose up</code> yazarsın.
+      </p>
+    </div>
+  </div>
+  <table style="width:100%; border-collapse:collapse; font-size:0.92em">
+    <thead>
+      <tr style="border-bottom:1px solid var(--border)">
+        <th style="text-align:left; padding:9px 12px; color:var(--muted); font-weight:600"></th>
+        <th style="text-align:left; padding:9px 12px; color:var(--red)">docker run</th>
+        <th style="text-align:left; padding:9px 12px; color:var(--green)">docker compose</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:9px 12px; color:var(--muted)">Tekrar kullanım</td>
+        <td style="padding:9px 12px">Komutu ezberle / kopyala</td>
+        <td style="padding:9px 12px"><code>up</code> yaz, bitti</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:9px 12px; color:var(--muted)">Çoklu container</td>
+        <td style="padding:9px 12px">3 ayrı komut</td>
+        <td style="padding:9px 12px">tek <code>up</code></td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:9px 12px; color:var(--muted)">Ekip paylaşımı</td>
+        <td style="padding:9px 12px">"şu komutu çalıştır"</td>
+        <td style="padding:9px 12px">dosyayı git'e koy</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:9px 12px; color:var(--muted)">Silme</td>
+        <td style="padding:9px 12px">her birini tek tek</td>
+        <td style="padding:9px 12px"><code>down</code></td>
+      </tr>
+      <tr>
+        <td style="padding:9px 12px; color:var(--muted)">Versiyonlama</td>
+        <td style="padding:9px 12px">yok</td>
+        <td style="padding:9px 12px">yml dosyası git'te</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 12: Docker Compose Scale -->
+<div class="slide">
+  <h2>Docker Compose ile Ölçekleme</h2>
+  <div class="two-col" style="align-items:start">
+    <pre style="font-size:0.92em"><span class="kw">services</span>:
+  <span class="fn">api</span>:
+    <span class="kw">build</span>: .
+    <span class="kw">expose</span>:
+      - <span class="str">"8000"</span>   <span class="cm"># ports değil expose</span>
+
+  <span class="fn">nginx</span>:
+    <span class="kw">image</span>: <span class="str">nginx:alpine</span>
+    <span class="kw">ports</span>:
+      - <span class="str">"80:80"</span>
+    <span class="kw">depends_on</span>:
+      - <span class="fn">api</span>
+
+<span class="cm"># 3 API instance:</span>
+<span class="kw">docker</span> compose up --scale api=<span class="num">3</span> -d</pre>
+    <div>
+      <div class="arch-stack" style="font-size:0.95em; gap:9px">
+        <div class="arch-box yellow" style="text-align:left; padding:12px 16px">Kullanıcı → :80</div>
+        <div style="text-align:center; color:var(--muted)">↓</div>
+        <div class="arch-box blue" style="text-align:left; padding:12px 16px"><strong>Nginx Load Balancer</strong> — yükü dengeli dağıtır</div>
+        <div style="text-align:center; color:var(--muted)">↓</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px">
+          <div class="arch-box green" style="font-size:0.85em">API 1</div>
+          <div class="arch-box green" style="font-size:0.85em">API 2</div>
+          <div class="arch-box green" style="font-size:0.85em">API 3</div>
+        </div>
+      </div>
+      <div class="highlight" style="margin-top:16px; font-size:0.95em">
+        Bu lokal için iyi. Sunucu çökerse? Farklı sunuculara yayılmak gerekirse?<br>
+        <strong>→ AWS ECS bunu otomatik yapar.</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 12: Bridge -->
+<div class="slide center">
+  <h2>3. Derse Köprü</h2>
+  <div style="margin:18px 0; font-size:1.15em; color:var(--muted)">
+    Lokalde çalışıyor. Ölçekleme sorununu gördük.<br>
+    Bunu gerçek dünyaya taşıyalım.
+  </div>
+  <div class="three-col" style="margin:24px 0; text-align:left">
+    <div class="box green">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:1.6em; font-weight:700; color:var(--green); margin-bottom:10px">✓ done</div>
+      <h3>Yaptıklarımız</h3>
+      <ul style="font-size:1.0em">
+        <li>FastAPI app yazdık</li>
+        <li>Dockerfile oluşturduk</li>
+        <li>Build ettik, test ettik</li>
+      </ul>
+    </div>
+    <div class="box yellow">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:1.6em; font-weight:700; color:var(--amber); margin-bottom:10px">? issue</div>
+      <h3>Sorunlar</h3>
+      <ul style="font-size:1.0em">
+        <li>Sadece lokalde çalışıyor</li>
+        <li>Ölçekleme manuel</li>
+        <li>Sunucu çökerse biter</li>
+      </ul>
+    </div>
+    <div class="box purple">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:1.6em; font-weight:700; color:var(--purple); margin-bottom:10px">→ next</div>
+      <h3>AWS ile Çözüm</h3>
+      <ul style="font-size:1.0em">
+        <li>ECR → Image deposu</li>
+        <li>ECS/Fargate → Otomatik</li>
+        <li>ALB → Yük dağıtımı</li>
+      </ul>
+    </div>
+  </div>
+  <div class="highlight" style="font-size:1.15em; text-align:center">
+    <strong>Sonraki ders:</strong> Bu container'ı AWS'e taşıyoruz. Siz telefonunuzdan test ediyorsunuz.
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<nav class="nav">
+  <button id="btn-prev">◀ Geri</button>
+  <span id="counter"></span>
+  <button id="btn-next">İleri ▶</button>
+</nav>
+
+<button id="theme-toggle" title="Tema değiştir"
+  style="position:fixed;top:16px;right:36px;z-index:200;
+         background:var(--surface);border:1px solid var(--border-hi);
+         color:var(--text);width:36px;height:36px;border-radius:8px;
+         cursor:pointer;font-size:1.1em;display:flex;align-items:center;
+         justify-content:center;transition:border-color 0.15s">🌙</button>
+<script>
+const btn=document.getElementById('theme-toggle');
+const saved=localStorage.getItem('theme')||'dark';
+document.documentElement.setAttribute('data-theme',saved);
+btn.textContent=saved==='light'?'🌙':'☀️';
+btn.onclick=()=>{
+  const t=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('theme',t);
+  btn.textContent=t==='light'?'🌙':'☀️';
+};
+btn.onmouseenter=()=>btn.style.borderColor='var(--primary)';
+btn.onmouseleave=()=>btn.style.borderColor='';
+</script>
+<script>
+const slides = [...document.querySelectorAll('.slide')];
+let current = 0;
+slides[0].classList.add('active');
+function show(n) {
+  n = Math.max(0, Math.min(n, slides.length - 1));
+  if (n === current) return;
+  const leaving = slides[current];
+  leaving.classList.remove('active');
+  leaving.classList.add('leaving');
+  leaving.addEventListener('transitionend', () => leaving.classList.remove('leaving'), { once:true });
+  current = n;
+  slides[current].classList.add('active');
+  document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`;
+  document.getElementById('progress').style.width = `${(current + 1) / slides.length * 100}%`;
+}
+document.getElementById('btn-prev').onclick = () => show(current - 1);
+document.getElementById('btn-next').onclick = () => show(current + 1);
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); show(current - 1); }
+  if (e.key === 'Home') show(0); if (e.key === 'End') show(slides.length - 1);
+});
+document.getElementById('counter').textContent = `1 / ${slides.length}`;
+document.getElementById('progress').style.width = `${1 / slides.length * 100}%`;
+</script>
+</body>
+</html>
