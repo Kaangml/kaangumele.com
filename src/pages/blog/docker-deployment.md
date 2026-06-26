@@ -8,6 +8,7 @@ sunum: "/sunumlar/ders2_deployment.html"
 ---
 
 > **Eğitim sunumuna** erişmek için → [Ders 2 Slaytları](/sunumlar/ders2_deployment.html)
+> **Kaynak kod & sunumlar** → [github.com/Kaangml/docker-egitimi](https://github.com/Kaangml/docker-egitimi)
 
 ## Ne İnşa Ediyoruz?
 

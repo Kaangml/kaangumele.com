@@ -8,6 +8,7 @@ sunum: "/sunumlar/ders1_docker_giris.html"
 ---
 
 > **Eğitim sunumuna** erişmek için → [Ders 1 Slaytları](/sunumlar/ders1_docker_giris.html)
+> **Kaynak kod & sunumlar** → [github.com/Kaangml/docker-egitimi](https://github.com/Kaangml/docker-egitimi)
 
 ## Neden Docker?
 
