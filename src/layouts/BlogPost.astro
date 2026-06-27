@@ -5,7 +5,7 @@ const dateStr = new Date(frontmatter.date).toLocaleDateString('tr-TR', {
   year: 'numeric', month: 'long', day: 'numeric'
 });
 ---
-<BaseLayout title={`${frontmatter.title} — Kaan Gümele`} description={frontmatter.description}>
+<BaseLayout title={`${frontmatter.title} — Kaan Gümele`} description={frontmatter.description} canonical={frontmatter.canonical}>
   <article class="container">
     <header class="post-header">
       <p class="label">yazılar</p>

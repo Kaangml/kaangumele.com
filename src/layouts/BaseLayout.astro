@@ -5,7 +5,8 @@ import '../styles/global.css';
 
 const {
   title = 'Kaan Gümele',
-  description = 'Applied AI Engineer — LLM, Computer Vision, Data, AWS. İstanbul.'
+  description = 'Applied AI Engineer — LLM, Computer Vision, Data, AWS. İstanbul.',
+  canonical,
 } = Astro.props;
 ---
 <!DOCTYPE html>
@@ -19,6 +20,7 @@ const {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    {canonical && <link rel="canonical" href={canonical} />}
   </head>
   <body>
     <Header />
